@@ -1,19 +1,182 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
+import { AuthService } from './services/auth.service';
+import { NotificationService } from './services/notification.service';
+import { SubscriptionService } from './services/subscription.service';
+import { Subject, interval, from, of } from 'rxjs';
+import { takeUntil, switchMap, catchError } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   public appPages = [
-    { title: 'Inbox', url: '/folder/inbox', icon: 'mail' },
-    { title: 'Outbox', url: '/folder/outbox', icon: 'paper-plane' },
-    { title: 'Favorites', url: '/folder/favorites', icon: 'heart' },
-    { title: 'Archived', url: '/folder/archived', icon: 'archive' },
-    { title: 'Trash', url: '/folder/trash', icon: 'trash' },
-    { title: 'Spam', url: '/folder/spam', icon: 'warning' },
+    { title: 'Magic Formula', url: '/folder/Magic Formula', icon: 'calculator-outline' },
+    { title: 'View Profile', url: '/profile', icon: 'person-outline' },
+    { title: 'My Subscriptions', url: '/subscriptions', icon: 'card-outline' },
+    { title: 'Notifications', url: '/notifications', icon: 'notifications-outline' },
+    { title: 'Support', url: '/support', icon: 'help-circle-outline' },
+    { title: "FAQ's", url: '/faq', icon: 'information-circle-outline' },
+    { title: 'Company Policies', url: '/policies', icon: 'document-text-outline' },
   ];
-  public labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
-  constructor() {}
+
+  unreadCount = 0;
+  subscriptionExpiryDays: number | null = null;
+  showExpiryWarning = false;
+  private destroy$ = new Subject<void>();
+
+  
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private alertController: AlertController,
+    private notificationService: NotificationService,
+    private subscriptionService: SubscriptionService
+  ) {}
+
+  async ngOnInit() {
+    // Check block status on app initialization if user is authenticated
+    if (this.authService.isAuthenticated()) {
+      await this.authService.checkBlockStatus();
+      this.loadUnreadCount();
+      this.loadSubscriptionExpiry();
+      this.startNotificationPolling();
+      this.startBlockStatusPolling();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  async loadUnreadCount() {
+    if (!this.authService.isAuthenticated()) {
+      this.unreadCount = 0;
+      return;
+    }
+
+    try {
+      this.unreadCount = await firstValueFrom(this.notificationService.getUnreadCount());
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+      this.unreadCount = 0;
+    }
+  }
+
+  async loadSubscriptionExpiry() {
+    if (!this.authService.isAuthenticated()) {
+      this.showExpiryWarning = false;
+      this.subscriptionExpiryDays = null;
+      return;
+    }
+
+    try {
+      const subscription = await firstValueFrom(
+        this.subscriptionService.getMySubscription()
+      );
+
+      if (subscription?.expiryDate) {
+        const now = new Date();
+        const expiry = new Date(subscription.expiryDate);
+        const diffTime = expiry.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        this.subscriptionExpiryDays = diffDays;
+        // Show warning only when subscription expires in 7 days or less
+        this.showExpiryWarning = diffDays > 0 && diffDays <= 7;
+      } else {
+        this.showExpiryWarning = false;
+        this.subscriptionExpiryDays = null;
+      }
+    } catch (error) {
+      console.error('Error loading subscription expiry:', error);
+      this.showExpiryWarning = false;
+      this.subscriptionExpiryDays = null;
+    }
+  }
+
+  startNotificationPolling() {
+    // Poll for new notifications every 30 seconds
+    interval(30000)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(() => {
+          if (this.authService.isAuthenticated()) {
+            return this.notificationService.getUnreadCount();
+          }
+          return [];
+        })
+      )
+      .subscribe({
+        next: (count) => {
+          this.unreadCount = count;
+        },
+        error: (error) => {
+          console.error('Error polling notifications:', error);
+        }
+      });
+  }
+
+  startBlockStatusPolling() {
+    // Poll block status every 5 seconds (frequent polling for immediate logout)
+    interval(5000)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(() => {
+          if (this.authService.isAuthenticated()) {
+            // Return observable that checks block status
+            return from(this.authService.checkBlockStatus(true)).pipe(
+              catchError(error => {
+                // If error indicates blocked, return true
+                if (error?.isBlocked || error?.status === 403) {
+                  return of(true);
+                }
+                return of(false);
+              })
+            );
+          }
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: (isBlocked) => {
+          if (isBlocked) {
+            // User is blocked - checkBlockStatus already logged out
+            console.log('User blocked - logged out automatically via polling');
+          }
+        },
+        error: (error) => {
+          console.error('Error polling block status:', error);
+        }
+      });
+  }
+
+  async onLogout() {
+    const alert = await this.alertController.create({
+      header: 'Confirm Logout',
+      message: 'Are you sure you want to logout?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
+        {
+          text: 'Logout',
+          cssClass: 'alert-button-confirm',
+          handler: () => {
+            this.authService.logout();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
 }

@@ -1,0 +1,377 @@
+@use "../../theme/app-theme.scss";
+
+.edit-profile-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+}
+
+.edit-profile-card {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(15, 15, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  animation: cardEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Avatar Section
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+
+  .avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--ion-color-primary);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(108, 216, 78, 0.1);
+    box-shadow: 
+      0 8px 32px rgba(108, 216, 78, 0.3),
+      0 0 0 1px rgba(108, 216, 78, 0.2) inset;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 
+        0 12px 40px rgba(108, 216, 78, 0.4),
+        0 0 0 1px rgba(108, 216, 78, 0.3) inset;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 36px;
+      height: 36px;
+      background: var(--ion-color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid rgba(15, 15, 15, 0.8);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1;
+
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(108, 216, 78, 0.5);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      ion-icon {
+        font-size: 18px;
+        color: var(--ion-color-neutral-black);
+      }
+    }
+  }
+
+  .avatar-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--ion-color-neutral-gray-light);
+    opacity: 0.7;
+    text-align: center;
+  }
+}
+
+// Form Section
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 32px;
+
+  &.disabled-section {
+    margin-top: 8px;
+  }
+
+  &.read-only-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-neutral-gray-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+}
+
+// Read-only Info Items
+.read-only-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  position: relative;
+  opacity: 0.7;
+
+  .info-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-neutral-gray-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+
+    .info-icon {
+      font-size: 18px;
+      color: var(--ion-color-neutral-gray-light);
+    }
+  }
+
+  .info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ion-color-neutral-white);
+    padding-left: 30px;
+  }
+
+  .lock-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 18px;
+    color: var(--ion-color-neutral-gray-light);
+    opacity: 0.5;
+  }
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &.disabled-input {
+    opacity: 0.6;
+  }
+}
+
+.input-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-neutral-white);
+  margin-left: 4px;
+  letter-spacing: 0.2px;
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 0 16px;
+  min-height: 56px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+
+  &:focus-within {
+    border-color: var(--ion-color-primary);
+    background: rgba(108, 216, 78, 0.05);
+    box-shadow: 0 0 0 4px rgba(108, 216, 78, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &.disabled {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:focus-within {
+      border-color: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  .input-icon {
+    font-size: 20px;
+    color: var(--ion-color-neutral-gray-light);
+    margin-right: 12px;
+    flex-shrink: 0;
+    transition: color 0.3s ease;
+  }
+
+  .lock-icon {
+    font-size: 18px;
+    color: var(--ion-color-neutral-gray-dark);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  &:focus-within:not(.disabled) .input-icon {
+    color: var(--ion-color-primary);
+  }
+
+  ion-input {
+    flex: 1;
+    --color: var(--ion-color-neutral-white);
+    --placeholder-color: rgba(214, 214, 214, 0.5);
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 15px;
+
+    &[disabled] {
+      --color: rgba(214, 214, 214, 0.4);
+      opacity: 0.6;
+    }
+  }
+}
+
+// Action Buttons
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.save-button {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-neutral-black);
+  --border-radius: 16px;
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  height: 56px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  box-shadow: 
+    0 4px 16px rgba(108, 216, 78, 0.3),
+    0 0 0 1px rgba(108, 216, 78, 0.1) inset;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:not([disabled]):active {
+    transform: scale(0.98);
+  }
+
+  &[disabled] {
+    --background: rgba(73, 73, 73, 0.3);
+    --color: rgba(214, 214, 214, 0.4);
+    box-shadow: none;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+}
+
+.cancel-button {
+  --border-color: rgba(255, 255, 255, 0.2);
+  --color: var(--ion-color-neutral-white);
+  --border-radius: 16px;
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  height: 56px;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:active {
+    transform: scale(0.98);
+    --border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+ion-header {
+  ion-toolbar {
+    --background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    --color: var(--ion-color-neutral-white);
+    --border-width: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  ion-back-button {
+    --color: var(--ion-color-neutral-white);
+  }
+
+  ion-title {
+    color: var(--ion-color-neutral-white);
+    font-weight: 600;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .edit-profile-container {
+    padding: 16px;
+  }
+
+  .edit-profile-card {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .avatar-section .avatar-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

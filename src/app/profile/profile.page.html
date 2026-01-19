@@ -1,0 +1,98 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>My Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="profile-container">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading profile...</p>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading && userProfile" class="profile-card" [@fadeInScale]>
+      <!-- Avatar Section -->
+      <div class="avatar-section" [@fadeInUp]>
+        <div class="avatar-wrapper">
+          <img [src]="getProfilePicture()" alt="Profile Avatar" class="avatar" />
+          <div class="avatar-badge">
+            <ion-icon name="camera-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Information -->
+      <div class="profile-info-section">
+        <!-- Full Name -->
+        <div class="info-item" [@fadeInUp]>
+          <div class="info-label">
+            <ion-icon name="person-outline" class="info-icon"></ion-icon>
+            <span>Full Name</span>
+          </div>
+          <div class="info-value">{{ userProfile.fullName || 'Not set' }}</div>
+        </div>
+
+        <!-- Email -->
+        <div class="info-item" [@fadeInUp]>
+          <div class="info-label">
+            <ion-icon name="mail-outline" class="info-icon"></ion-icon>
+            <span>Email</span>
+          </div>
+          <div class="info-value">{{ userProfile.email || 'Not set' }}</div>
+        </div>
+
+        <!-- Mobile Number -->
+        <div class="info-item" [@fadeInUp]>
+          <div class="info-label">
+            <ion-icon name="call-outline" class="info-icon"></ion-icon>
+            <span>Mobile Number</span>
+          </div>
+          <div class="info-value">{{ userProfile.mobile || 'Not set' }}</div>
+          <div class="info-hint" *ngIf="userProfile.mobile">
+            <ion-icon name="information-circle-outline" class="hint-icon"></ion-icon>
+            <span>WhatsApp number needed for important notifications</span>
+          </div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div class="info-item" [@fadeInUp] *ngIf="userProfile.whatsapp">
+          <div class="info-label">
+            <ion-icon name="logo-whatsapp" class="info-icon"></ion-icon>
+            <span>WhatsApp</span>
+          </div>
+          <div class="info-value">{{ userProfile.whatsapp }}</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button
+          expand="block"
+          class="edit-profile-button"
+          (click)="navigateToEditProfile()"
+          [@fadeInUp]
+        >
+          <ion-icon name="create-outline" slot="start"></ion-icon>
+          Edit Profile
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          class="device-change-button"
+          (click)="requestDeviceChange()"
+          [@fadeInUp]
+        >
+          <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
+          Request Device Change
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

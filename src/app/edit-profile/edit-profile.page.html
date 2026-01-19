@@ -1,0 +1,112 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profile" icon="arrow-back-outline"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Edit Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="edit-profile-container">
+    <form [formGroup]="editProfileForm" class="edit-profile-card" [@fadeInScale]>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Loading profile...</p>
+      </div>
+
+      <!-- Profile Content -->
+      <div *ngIf="!isLoading">
+        <!-- Avatar Section -->
+        <div class="avatar-section" [@fadeInUp]>
+          <div class="avatar-wrapper">
+            <img [src]="avatarUrl" alt="Profile Avatar" class="avatar" />
+            <label for="profile-pic-upload" class="avatar-badge">
+              <ion-icon name="camera-outline"></ion-icon>
+            </label>
+            <input
+              type="file"
+              id="profile-pic-upload"
+              accept="image/*"
+              style="display: none;"
+              (change)="onProfilePictureSelected($event)"
+            />
+          </div>
+          <p class="avatar-hint">Tap camera icon to upload profile picture</p>
+        </div>
+
+        <!-- Editable Fields -->
+        <div class="form-section">
+          <!-- Full Name (Editable) -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Full Name *</label>
+            <div class="input-container">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="text"
+                formControlName="fullName"
+                placeholder="Enter your full name"
+                class="custom-input"
+              ></ion-input>
+            </div>
+            <div *ngIf="editProfileForm.get('fullName')?.invalid && editProfileForm.get('fullName')?.touched" class="error-message">
+              Full name is required
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Read-only Fields Section -->
+        <div class="form-section read-only-section">
+          <div class="section-label">Non-Editable Information</div>
+
+          <!-- Email (Read-only) -->
+          <div class="info-item read-only-item" [@fadeInUp]>
+            <div class="info-label">
+              <ion-icon name="mail-outline" class="info-icon"></ion-icon>
+              <span>Email</span>
+            </div>
+            <div class="info-value">{{ currentUser?.email || 'Not set' }}</div>
+            <ion-icon name="lock-closed-outline" class="lock-icon"></ion-icon>
+          </div>
+
+          <!-- Mobile / WhatsApp (Read-only) -->
+          <div class="info-item read-only-item" [@fadeInUp]>
+            <div class="info-label">
+              <ion-icon name="logo-whatsapp" class="info-icon"></ion-icon>
+              <span>WhatsApp / Mobile Number</span>
+            </div>
+            <div class="info-value">{{ currentUser?.mobile || currentUser?.whatsapp || 'Not set' }}</div>
+            <ion-icon name="lock-closed-outline" class="lock-icon"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button
+          expand="block"
+          class="save-button"
+          [disabled]="!editProfileForm.valid"
+          (click)="onSaveChanges()"
+          [@fadeInUp]
+        >
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          Save Changes
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="cancel-button"
+          (click)="onCancel()"
+          [@fadeInUp]
+        >
+          Cancel
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>
+

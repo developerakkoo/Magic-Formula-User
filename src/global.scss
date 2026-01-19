@@ -32,6 +32,88 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+@import "@ionic/angular/css/palettes/dark.always.css";
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+
+
+
+/* Custom Alert Styling */
+ion-alert.custom-alert {
+  --background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(20px);
+  --border-radius: 20px;
+  --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --max-width: 400px;
+
+  .alert-head {
+    color: var(--ion-color-neutral-white);
+    font-weight: 700;
+    font-size: 20px;
+    padding: 20px 20px 12px 20px;
+  }
+
+  .alert-message {
+    color: var(--ion-color-neutral-gray-light);
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0 20px 20px 20px;
+  }
+
+  .alert-button-group {
+    padding: 0 20px 20px 20px;
+    gap: 12px;
+    flex-direction: row;
+    display: flex;
+  }
+
+  .alert-button {
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    height: 48px;
+    margin: 0;
+    text-transform: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 0;
+
+    .button-inner,
+    .alert-button-inner {
+      justify-content: center !important;
+      text-align: center;
+      -ms-flex-pack: center !important;
+    }
+
+    &.alert-button-cancel {
+      --color: var(--ion-color-neutral-gray-light);
+      --background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    &.alert-button-confirm {
+      --color: var(--ion-color-neutral-black);
+      --background: var(--ion-color-primary);
+      box-shadow: 0 4px 16px rgba(108, 216, 78, 0.3);
+    }
+  }
+
+  .alert-button-inner.sc-ion-alert-md {
+    justify-content: center !important;
+    -ms-flex-pack: center !important;
+  }
+
+  &.success-alert {
+    .alert-head {
+      color: var(--ion-color-primary);
+    }
+
+    .alert-message {
+      color: var(--ion-color-neutral-white);
+    }
+  }
+}

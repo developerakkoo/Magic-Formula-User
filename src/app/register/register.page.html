@@ -1,0 +1,197 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login" icon="arrow-back-outline"></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="register-container">
+    <div class="register-card" [@fadeInScale]>
+      <form [formGroup]="registerForm" class="register-form" [@staggerFadeIn]>
+        <!-- Avatar Section -->
+        <div class="avatar-section" [@fadeInUp]>
+          <div class="avatar-wrapper">
+            <img [src]="avatarUrl" alt="Avatar" class="avatar" (error)="avatarUrl = ''" />
+            <div class="avatar-badge">
+              <ion-icon name="sparkles-outline"></ion-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section" [@fadeInUp]>
+          <h1 class="welcome-title">Create Account</h1>
+          <p class="welcome-subtitle">Fill in your details to get started</p>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="form-section">
+          <!-- Full Name Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Full Name</label>
+            <div class="input-container">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="text"
+                formControlName="fullName"
+                placeholder="Enter your full name"
+                class="custom-input"
+                [clearOnEdit]="true"
+              ></ion-input>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Email</label>
+            <div class="input-container">
+              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="email"
+                formControlName="email"
+                placeholder="Enter your email"
+                class="custom-input"
+                [clearOnEdit]="true"
+              ></ion-input>
+            </div>
+          </div>
+
+          <!-- Mobile Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Mobile Number</label>
+            <div class="input-container">
+              <ion-icon name="call-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="tel"
+                formControlName="mobile"
+                placeholder="Enter your mobile number"
+                class="custom-input"
+                [clearOnEdit]="true"
+                maxlength="10"
+              ></ion-input>
+            </div>
+            <p class="hint-text">
+              <ion-icon name="information-circle-outline" class="hint-icon"></ion-icon>
+              WhatsApp number needed for important notifications and functionality
+            </p>
+          </div>
+
+          <!-- Password Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Password</label>
+            <div class="input-container">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <ion-input
+                [type]="obscurePassword ? 'password' : 'text'"
+                formControlName="password"
+                placeholder="Enter your password"
+                class="custom-input"
+                [clearOnEdit]="false"
+              ></ion-input>
+              <ion-icon 
+                [name]="obscurePassword ? 'eye-outline' : 'eye-off-outline'"
+                class="input-icon input-icon-end"
+                (click)="togglePasswordVisibility()"
+              ></ion-icon>
+            </div>
+          </div>
+
+          <!-- Password Strength Progress Bar -->
+          <div class="password-strength-container" [@fadeInUp]>
+            <div class="strength-progress-wrapper">
+              <div 
+                class="strength-progress" 
+                [style.width.%]="passwordStrength * 100" 
+                [style.background-color]="getStrengthColor()"
+                [style.transition]="'width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease'"
+              ></div>
+            </div>
+            
+            <!-- Requirements List or Strong Password Text -->
+            <div [@slideInRight] *ngIf="!allRequirementsMet" class="requirements-container">
+              <div class="requirement-item" [class.met]="hasMinLength">
+                <ion-icon 
+                  [name]="hasMinLength ? 'checkmark-circle' : 'ellipse-outline'" 
+                  [class.check-icon]="hasMinLength"
+                  class="requirement-icon"
+                ></ion-icon>
+                <span [class.completed]="hasMinLength">At least 8 characters</span>
+              </div>
+              <div class="requirement-item" [class.met]="hasUppercase">
+                <ion-icon 
+                  [name]="hasUppercase ? 'checkmark-circle' : 'ellipse-outline'" 
+                  [class.check-icon]="hasUppercase"
+                  class="requirement-icon"
+                ></ion-icon>
+                <span [class.completed]="hasUppercase">One uppercase letter</span>
+              </div>
+              <div class="requirement-item" [class.met]="hasNumber">
+                <ion-icon 
+                  [name]="hasNumber ? 'checkmark-circle' : 'ellipse-outline'" 
+                  [class.check-icon]="hasNumber"
+                  class="requirement-icon"
+                ></ion-icon>
+                <span [class.completed]="hasNumber">One number</span>
+              </div>
+              <div class="requirement-item" [class.met]="hasSymbol">
+                <ion-icon 
+                  [name]="hasSymbol ? 'checkmark-circle' : 'ellipse-outline'" 
+                  [class.check-icon]="hasSymbol"
+                  class="requirement-icon"
+                ></ion-icon>
+                <span [class.completed]="hasSymbol">One symbol</span>
+              </div>
+            </div>
+            
+            <div [@fadeInUp] *ngIf="allRequirementsMet" class="strong-password-text">
+              <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+              <span>Strong Password</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <ion-button
+            expand="block"
+            class="register-button"
+            [disabled]="isLoading || !registerForm.valid"
+            (click)="handleRegister()"
+            [@fadeInUp]
+          >
+            <ion-spinner *ngIf="isLoading" name="crescent" class="button-spinner"></ion-spinner>
+            <span *ngIf="!isLoading" class="button-text">Create Account</span>
+          </ion-button>
+
+          <!-- Divider -->
+          <div class="divider" [@fadeInUp]>
+            <span class="divider-text">or</span>
+          </div>
+
+          <!-- Login Link -->
+          <div class="login-section" [@fadeInUp]>
+            <span class="login-text">Already have an account? </span>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="login-link"
+              (click)="navigateToLogin()"
+            >
+              Sign In
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Terms Text -->
+        <p class="terms-text" [@fadeInUp]>
+          By continuing, you agree to our 
+          <a href="#" class="terms-link">Terms of Service</a> 
+          and 
+          <a href="#" class="terms-link">Privacy Policy</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</ion-content>

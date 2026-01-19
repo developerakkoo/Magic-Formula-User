@@ -1,0 +1,133 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Subscriptions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="subscriptions-container">
+    <!-- Active Subscription Card -->
+    <div class="active-subscription-card" *ngIf="activeSubscription" [@fadeInScale]>
+      <div class="active-badge">
+        <ion-icon name="checkmark-circle" class="badge-icon"></ion-icon>
+        <span>Active Subscription</span>
+      </div>
+      <div class="active-content">
+        <div class="active-icon-wrapper">
+          <ion-icon [name]="getActivePlan()?.icon || 'diamond-outline'" class="active-icon"></ion-icon>
+        </div>
+        <div class="active-details">
+          <h2 class="active-plan-name">{{ activeSubscription.planName }}</h2>
+          <p class="active-dates">
+            <ion-icon name="calendar-outline" class="date-icon"></ion-icon>
+            Valid until {{ formatDate(activeSubscription.endDate) }}
+          </p>
+        </div>
+      </div>
+      <div class="active-status">
+        <span class="status-indicator active"></span>
+        <span class="status-text">Active</span>
+      </div>
+    </div>
+
+    <!-- Plans Section -->
+    <div class="plans-section">
+      <h2 class="section-title" [@fadeInUp]>Choose Your Plan</h2>
+      <p class="section-subtitle" [@fadeInUp]>Select the perfect plan for your needs</p>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
+        <ion-skeleton-text animated style="width: 100%; height: 400px; margin-bottom: 20px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 100%; height: 400px; margin-bottom: 20px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 100%; height: 400px;"></ion-skeleton-text>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && plans.length === 0" class="empty-state">
+        <ion-icon name="document-outline"></ion-icon>
+        <h3>No Plans Available</h3>
+        <p>Please check back later for subscription plans</p>
+      </div>
+
+      <div class="plans-grid" *ngIf="!isLoading && plans.length > 0">
+        <div 
+          *ngFor="let plan of plans; let i = index" 
+          class="plan-card"
+          [class.popular]="plan.popular"
+          [class.premium]="plan.id === 'year'"
+          [@fadeInUp]
+          [style.animation-delay]="(i * 0.1) + 's'"
+        >
+          <!-- Offer Badge -->
+          <div class="offer-badge" *ngIf="plan.showOfferBadge && isOfferActive(plan)">
+            <ion-icon name="flash-outline" class="flash-icon"></ion-icon>
+            <span class="offer-text">{{ plan.offerText || 'Special Offer' }}</span>
+            <span class="offer-timer" *ngIf="getTimeRemaining(plan)">{{ getTimeRemaining(plan) }} remaining</span>
+          </div>
+
+          <!-- Popular Badge -->
+          <div class="popular-badge" *ngIf="plan.popular && !(plan.showOfferBadge && isOfferActive(plan))">
+            <ion-icon name="star" class="star-icon"></ion-icon>
+            <span>Most Popular</span>
+          </div>
+
+          <!-- Premium Badge -->
+          <div class="premium-badge" *ngIf="plan.id === '12' && !(plan.showOfferBadge && isOfferActive(plan))">
+            <ion-icon name="diamond" class="diamond-icon"></ion-icon>
+            <span>Premium</span>
+          </div>
+
+          <!-- Plan Icon -->
+          <div class="plan-icon-wrapper">
+            <ion-icon [name]="plan.icon" class="plan-icon"></ion-icon>
+          </div>
+
+          <!-- Plan Header -->
+          <div class="plan-header">
+            <h3 class="plan-title">{{ plan.title }}</h3>
+            <p class="plan-description">{{ plan.description }}</p>
+          </div>
+
+          <!-- Pricing -->
+          <div class="plan-pricing">
+            <div class="price-wrapper">
+              <span class="currency">₹</span>
+              <span class="price">{{ plan.price }}</span>
+            </div>
+            <div class="price-details" *ngIf="plan.originalPrice && plan.originalPrice > plan.price">
+              <span class="original-price">₹{{ plan.originalPrice }}</span>
+              <span class="savings">Save ₹{{ calculateSavings(plan) }}</span>
+            </div>
+            <p class="duration">{{ plan.duration }}</p>
+          </div>
+
+          <!-- Features List -->
+          <div class="plan-features">
+            <div class="feature-item" *ngFor="let feature of plan.features">
+              <ion-icon name="checkmark-circle" class="feature-icon"></ion-icon>
+              <span class="feature-text">{{ feature }}</span>
+            </div>
+          </div>
+
+          <!-- Subscribe Button -->
+          <ion-button
+            expand="block"
+            class="subscribe-button"
+            [class.active-plan]="activeSubscription?.planName === plan.title"
+            (click)="subscribeToPlan(plan._id || plan.id)"
+            [disabled]="activeSubscription?.planName === plan.title || isSubscribing"
+          >
+            <ion-icon name="checkmark-circle" slot="start" *ngIf="activeSubscription?.planName === plan.title"></ion-icon>
+            <ion-spinner *ngIf="isSubscribing" name="crescent" slot="start"></ion-spinner>
+            <span *ngIf="activeSubscription?.planName === plan.title">Current Plan</span>
+            <span *ngIf="activeSubscription?.planName !== plan.title && !isSubscribing">Subscribe Now</span>
+            <span *ngIf="activeSubscription?.planName !== plan.title && isSubscribing">Processing...</span>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

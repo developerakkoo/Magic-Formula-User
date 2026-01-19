@@ -4,18 +4,271 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>{{ folder }}</ion-title>
+    <ion-buttons slot="end">
+    
+      <ion-button class="notification-button" (click)="navigateToNotifications()">
+        <ion-icon name="notifications-outline" class="notification-icon"></ion-icon>
+        <ion-badge class="notification-badge" *ngIf="notificationCount > 0">{{ notificationCount }}</ion-badge>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="app-bg-gradient">
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">{{ folder }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div id="container">
-    <strong class="capitalize">{{ folder }}</strong>
-    <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <div class="calculator-container">
+    <!-- Loading State -->
+    <div *ngIf="isCheckingSubscription" class="subscription-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Checking subscription status...</p>
+    </div>
+
+    <!-- Subscription Required Message -->
+    <div *ngIf="!isCheckingSubscription && !hasActiveSubscription" class="subscription-required-container" [@fadeInScale]>
+      <div class="subscription-required-card">
+        <div class="subscription-icon-wrapper">
+          <ion-icon name="lock-closed-outline" class="subscription-icon"></ion-icon>
+        </div>
+        <h2 class="subscription-title">Subscription Required</h2>
+        <p class="subscription-message">You have to subscribe to our plans to use the Magic formula</p>
+        <ion-button
+          expand="block"
+          class="view-subscriptions-button"
+          (click)="navigateToSubscriptions()"
+        >
+          <ion-icon name="diamond-outline" slot="start"></ion-icon>
+          View Subscriptions
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Calculator (only visible with active subscription) -->
+    <div *ngIf="!isCheckingSubscription && hasActiveSubscription" class="calculator-wrapper">
+      <form [formGroup]="calculatorForm" class="calculator-form">
+        <!-- Segment Selection -->
+        <div class="segment-section">
+          <ion-segment 
+            [value]="selectedSegment" 
+            (ionChange)="onSegmentChange($event)"
+            class="option-segment"
+          >
+            <ion-segment-button value="nifty" class="segment-button">
+              <ion-label>NIFTY Options</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="stock" class="segment-button">
+              <ion-label>Stock Options</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <!-- Input Grid (2x2) -->
+        <div class="inputs-grid">
+          <div class="input-wrapper">
+            <label class="input-label">OPEN</label>
+            <div class="input-container">
+              <ion-icon name="trending-up-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="number"
+                formControlName="open"
+                placeholder="0.00"
+                class="custom-input"
+                step="0.01"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="input-wrapper">
+            <label class="input-label">HIGH</label>
+            <div class="input-container">
+              <ion-icon name="arrow-up-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="number"
+                formControlName="high"
+                placeholder="0.00"
+                class="custom-input"
+                step="0.01"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="input-wrapper">
+            <label class="input-label">LOW</label>
+            <div class="input-container">
+              <ion-icon name="arrow-down-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="number"
+                formControlName="low"
+                placeholder="0.00"
+                class="custom-input"
+                step="0.01"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="input-wrapper">
+            <label class="input-label">LAST</label>
+            <div class="input-container">
+              <ion-icon name="stop-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="number"
+                formControlName="last"
+                placeholder="0.00"
+                class="custom-input"
+                step="0.01"
+              ></ion-input>
+            </div>
+          </div>
+
+          <!-- Stock-specific inputs (only visible when Stock tab is selected) -->
+          <div class="input-wrapper" *ngIf="selectedSegment === 'stock'">
+            <label class="input-label">Stock Name</label>
+            <div class="input-container">
+              <ion-icon name="business-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="text"
+                formControlName="stockName"
+                placeholder="Enter stock name"
+                class="custom-input"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="input-wrapper" *ngIf="selectedSegment === 'stock'">
+            <label class="input-label">Future Close Price</label>
+            <div class="input-container">
+              <ion-icon name="cash-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="number"
+                formControlName="futureClosePrice"
+                placeholder="0.00"
+                class="custom-input"
+                step="0.01"
+              ></ion-input>
+            </div>
+          </div>
+        </div>
+
+        <!-- Magic Button -->
+        <div class="magic-button-wrapper">
+          <div class="stars-container" *ngIf="calculatorForm.valid">
+            <div class="star star-1">✨</div>
+            <div class="star star-2">⭐</div>
+            <div class="star star-3">✨</div>
+            <div class="star star-4">⭐</div>
+            <div class="star star-5">✨</div>
+            <div class="star star-6">⭐</div>
+            <div class="star star-7">✨</div>
+            <div class="star star-8">⭐</div>
+          </div>
+          <ion-button
+            expand="block"
+            class="magic-button"
+            [disabled]="!calculatorForm.valid"
+            (click)="onViewMagic()"
+          >
+            <ion-icon name="sparkles-outline" slot="start" class="magic-icon" [class.icon-animated]="calculatorForm.valid"></ion-icon>
+            <span class="button-text">View Magic</span>
+          </ion-button>
+        </div>
+      </form>
+
+      <!-- Results Section -->
+      <div class="results-section" *ngIf="showResults" [@resultsAnimation]>
+      <div class="results-header">
+        <h2 class="results-title">Analyzed Results</h2>
+        <p class="results-subtitle">Input accuracy is crucial for correct trade signals</p>
+      </div>
+
+      <div class="results-grid">
+        <!-- Target Five -->
+        <div class="result-card target target-five" [@cardSlideIn] *ngIf="selectedSegment === 'nifty' || selectedSegment === 'stock'">
+          <div class="result-icon-wrapper">
+            <ion-icon name="flag-outline" class="result-icon"></ion-icon>
+          </div>
+          <div class="result-content">
+            <h3 class="result-label">Target Five</h3>
+            <p class="result-value">{{ pivotResults.targetFive | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Target Four -->
+        <div class="result-card target target-four" [@cardSlideIn]>
+          <div class="result-icon-wrapper">
+            <ion-icon name="flag-outline" class="result-icon"></ion-icon>
+          </div>
+          <div class="result-content">
+            <h3 class="result-label">Target Four</h3>
+            <p class="result-value">{{ pivotResults.targetFour | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Target Three -->
+        <div class="result-card target target-three" [@cardSlideIn]>
+          <div class="result-icon-wrapper">
+            <ion-icon name="flag-outline" class="result-icon"></ion-icon>
+          </div>
+          <div class="result-content">
+            <h3 class="result-label">Target Three</h3>
+            <p class="result-value">{{ pivotResults.targetThree | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Target Two -->
+        <div class="result-card target target-two" [@cardSlideIn]>
+          <div class="result-icon-wrapper">
+            <ion-icon name="flag-outline" class="result-icon"></ion-icon>
+          </div>
+          <div class="result-content">
+            <h3 class="result-label">Target Two</h3>
+            <p class="result-value">{{ pivotResults.targetTwo | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Target One -->
+        <div class="result-card target target-one" [@cardSlideIn]>
+          <div class="result-icon-wrapper">
+            <ion-icon name="flag-outline" class="result-icon"></ion-icon>
+          </div>
+          <div class="result-content">
+            <h3 class="result-label">Target One</h3>
+            <p class="result-value">{{ pivotResults.targetOne | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Entry Point and Stop Loss Row -->
+        <div class="entry-stop-row">
+          <!-- Entry Point -->
+          <div class="result-card entry-point" [@cardSlideIn]>
+            <!-- <div class="result-icon-wrapper">
+              <ion-icon name="locate-outline" class="result-icon"></ion-icon>
+            </div> -->
+            <div class="result-content">
+              <h3 class="result-label">Entry Point</h3>
+              <p class="result-value">{{ pivotResults.entryPoint | number:'1.2-2' }}</p>
+              <p class="result-hint">BUY Above</p>
+            </div>
+          </div>
+
+          <!-- Stop Loss -->
+          <div class="result-card stop-loss" [@cardSlideIn]>
+            <!-- <div class="result-icon-wrapper">
+              <ion-icon name="shield-outline" class="result-icon"></ion-icon>
+            </div> -->
+            <div class="result-content">
+              <h3 class="result-label">Stop Loss</h3>
+              <p class="result-value">{{ pivotResults.stopLoss | number:'1.2-2' }}</p>
+              <p class="result-hint">SELL Below</p>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
   </div>
 </ion-content>

@@ -1,0 +1,110 @@
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="login-container">
+    <div class="login-card" [@fadeInScale]>
+      <form [formGroup]="loginForm" class="login-form" [@staggerFadeIn]>
+        <!-- Logo/Brand Section -->
+        <div class="brand-section" [@fadeInUp]>
+          <div class="logo-wrapper">
+            <img src="assets/logo.svg" alt="Logo" class="logo" />
+          </div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section" [@fadeInUp]>
+          <h1 class="welcome-title">Welcome User</h1>
+          <p class="welcome-subtitle">Sign in to continue to your account</p>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="form-section">
+          <!-- Email Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Email</label>
+            <div class="input-container">
+              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+              <ion-input
+                type="email"
+                formControlName="email"
+                placeholder="Enter your email"
+                class="custom-input"
+                [clearOnEdit]="true"
+              ></ion-input>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="input-wrapper" [@fadeInUp]>
+            <label class="input-label">Password</label>
+            <div class="input-container">
+              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+              <ion-input
+                [type]="obscurePassword ? 'password' : 'text'"
+                formControlName="password"
+                placeholder="Enter your password"
+                class="custom-input"
+                [clearOnEdit]="false"
+              ></ion-input>
+              <ion-icon 
+                [name]="obscurePassword ? 'eye-outline' : 'eye-off-outline'"
+                class="input-icon input-icon-end"
+                (click)="togglePasswordVisibility()"
+              ></ion-icon>
+            </div>
+          </div>
+
+          <!-- Forgot Password Link -->
+          <div class="forgot-password-wrapper" [@slideInRight]>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="forgot-password-link"
+              (click)="navigateToForgotPassword()"
+            >
+              Forgot Password?
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <ion-button
+            expand="block"
+            class="signin-button"
+            [disabled]="isLoading || !loginForm.valid"
+            (click)="handleSignIn()"
+            [@fadeInUp]
+          >
+            <ion-spinner *ngIf="isLoading" name="crescent" class="button-spinner"></ion-spinner>
+            <span *ngIf="!isLoading" class="button-text">Sign In</span>
+          </ion-button>
+
+          <!-- Divider -->
+          <div class="divider" [@fadeInUp]>
+            <span class="divider-text">or</span>
+          </div>
+
+          <!-- Register Link -->
+          <div class="register-section" [@fadeInUp]>
+            <span class="register-text">Don't have an account? </span>
+            <ion-button
+              fill="clear"
+              size="small"
+              class="register-link"
+              (click)="navigateToRegister()"
+            >
+              Sign Up
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Terms Text -->
+        <p class="terms-text" [@fadeInUp]>
+          By continuing, you agree to our 
+          <a (click)="openTermsAndConditions(); $event.preventDefault()" class="terms-link">Terms of Service</a> 
+          and 
+          <a (click)="openPrivacyPolicy(); $event.preventDefault()" class="terms-link">Privacy Policy</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</ion-content>

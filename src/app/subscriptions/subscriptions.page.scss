@@ -1,0 +1,651 @@
+@use "../../theme/app-theme.scss";
+
+.subscriptions-container {
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+// Active Subscription Card
+.active-subscription-card {
+  background: linear-gradient(135deg, rgba(108, 216, 78, 0.15) 0%, rgba(30, 202, 193, 0.15) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(108, 216, 78, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(108, 216, 78, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ion-color-primary) 0%, #1ECAC1 100%);
+  }
+
+  .active-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    .badge-icon {
+      font-size: 18px;
+    }
+  }
+
+  .active-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    .active-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(108, 216, 78, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(108, 216, 78, 0.3);
+
+      .active-icon {
+        font-size: 28px;
+        color: var(--ion-color-primary);
+      }
+    }
+
+    .active-details {
+      flex: 1;
+
+      .active-plan-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ion-color-neutral-white);
+        margin: 0 0 8px 0;
+      }
+
+      .active-dates {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--ion-color-neutral-gray-light);
+        margin: 0;
+
+        .date-icon {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  .active-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ion-color-primary);
+      box-shadow: 0 0 8px rgba(108, 216, 78, 0.6);
+      animation: pulse 2s ease-in-out infinite;
+
+      &.active {
+        background: var(--ion-color-primary);
+      }
+    }
+
+    .status-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-neutral-white);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes buttonShine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes premiumBadgePulse {
+  0%, 100% {
+    box-shadow: 
+      0 4px 16px rgba(255, 215, 0, 0.5),
+      0 0 20px rgba(186, 85, 211, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 6px 24px rgba(255, 215, 0, 0.7),
+      0 0 30px rgba(186, 85, 211, 0.5);
+  }
+}
+
+// Plans Section
+.plans-section {
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ion-color-neutral-white);
+    margin: 0 0 8px 0;
+    text-align: center;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+    color: var(--ion-color-neutral-gray-light);
+    margin: 0 0 32px 0;
+    text-align: center;
+  }
+}
+
+// Plans Grid
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+// Plan Card
+.plan-card {
+  background: rgba(15, 15, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 32px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--ion-color-primary) 0%, #1ECAC1 100%);
+    transform: scaleX(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    border-color: rgba(108, 216, 78, 0.3);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(108, 216, 78, 0.2) inset;
+
+    &::before {
+      transform: scaleX(1);
+    }
+  }
+
+  &.popular {
+    border: 2px solid rgba(108, 216, 78, 0.4);
+    background: linear-gradient(135deg, rgba(108, 216, 78, 0.08) 0%, rgba(30, 202, 193, 0.08) 100%);
+    box-shadow: 
+      0 8px 32px rgba(108, 216, 78, 0.3),
+      0 0 0 1px rgba(108, 216, 78, 0.2) inset;
+
+    &::before {
+      transform: scaleX(1);
+    }
+
+    .popular-badge {
+      display: flex;
+    }
+  }
+
+  &.premium {
+    border: 2px solid rgba(255, 215, 0, 0.6);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 140, 0, 0.12) 25%, rgba(186, 85, 211, 0.12) 75%, rgba(138, 43, 226, 0.12) 100%);
+    box-shadow: 
+      0 12px 48px rgba(255, 215, 0, 0.4),
+      0 0 0 1px rgba(255, 215, 0, 0.3) inset,
+      0 0 60px rgba(186, 85, 211, 0.2);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 12px;
+      right: 12px;
+      height: 3px;
+      background: linear-gradient(90deg, #FFD700 0%, #FF8C00 25%, #BA55D3 75%, #8A2BE2 100%);
+      border-radius: 0 0 8px 8px;
+      transform: scaleX(1);
+      box-shadow: 
+        0 2px 8px rgba(255, 215, 0, 0.4),
+        inset 0 1px 2px rgba(255, 215, 0, 0.3);
+      z-index: 1;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 215, 0, 0.1) 50%,
+        transparent 70%
+      );
+      animation: shimmer 3s infinite;
+      pointer-events: none;
+    }
+
+    &:hover {
+      transform: translateY(-12px) scale(1.02);
+      border-color: rgba(255, 215, 0, 0.8);
+      box-shadow: 
+        0 16px 64px rgba(255, 215, 0, 0.5),
+        0 0 0 2px rgba(255, 215, 0, 0.4) inset,
+        0 0 80px rgba(186, 85, 211, 0.3);
+    }
+
+    .premium-badge {
+      display: flex;
+    }
+
+    .plan-icon-wrapper {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(186, 85, 211, 0.2) 100%);
+      border: 2px solid rgba(255, 215, 0, 0.4);
+      box-shadow: 
+        0 4px 16px rgba(255, 215, 0, 0.3),
+        0 0 20px rgba(186, 85, 211, 0.2);
+
+      .plan-icon {
+        color: #FFD700;
+        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+      }
+    }
+
+    &:hover .plan-icon-wrapper {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(186, 85, 211, 0.3) 100%);
+      transform: scale(1.15) rotate(10deg);
+      box-shadow: 
+        0 6px 24px rgba(255, 215, 0, 0.4),
+        0 0 30px rgba(186, 85, 211, 0.3);
+    }
+
+    .plan-title {
+      background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #BA55D3 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+    }
+
+    .plan-pricing {
+      .price-wrapper {
+        .currency,
+        .price {
+          background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #BA55D3 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+        }
+      }
+
+      .savings {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(186, 85, 211, 0.25) 100%);
+        color: #FFD700;
+        border: 1px solid rgba(255, 215, 0, 0.4);
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+      }
+    }
+
+    .plan-features {
+      .feature-item {
+        .feature-icon {
+          color: #FFD700;
+          filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
+        }
+      }
+    }
+
+    .subscribe-button {
+      --background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #BA55D3 100%);
+      --color: var(--ion-color-neutral-black);
+      box-shadow: 
+        0 6px 24px rgba(255, 215, 0, 0.5),
+        0 0 0 1px rgba(255, 215, 0, 0.3) inset,
+        0 0 30px rgba(186, 85, 211, 0.3);
+      font-weight: 800;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: buttonShine 2s infinite;
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+  }
+
+  .popular-badge {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--ion-color-primary) 0%, #1ECAC1 100%);
+    color: var(--ion-color-neutral-black);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(108, 216, 78, 0.4);
+    z-index: 10;
+
+    .star-icon {
+      font-size: 14px;
+    }
+  }
+
+  .premium-badge {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #BA55D3 100%);
+    color: var(--ion-color-neutral-black);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 
+      0 4px 16px rgba(255, 215, 0, 0.5),
+      0 0 20px rgba(186, 85, 211, 0.3);
+    z-index: 10;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    animation: premiumBadgePulse 2s ease-in-out infinite;
+
+    .diamond-icon {
+      font-size: 16px;
+      filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+    }
+  }
+
+  .plan-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgba(108, 216, 78, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border: 1px solid rgba(108, 216, 78, 0.2);
+    transition: all 0.3s ease;
+
+    .plan-icon {
+      font-size: 32px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  &:hover .plan-icon-wrapper {
+    background: rgba(108, 216, 78, 0.2);
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .plan-header {
+    margin-bottom: 24px;
+
+    .plan-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ion-color-neutral-white);
+      margin: 0 0 8px 0;
+    }
+
+    .plan-description {
+      font-size: 14px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+
+  .plan-pricing {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .price-wrapper {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 8px;
+
+      .currency {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--ion-color-neutral-white);
+      }
+
+      .price {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--ion-color-neutral-white);
+        line-height: 1;
+      }
+    }
+
+    .price-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      .original-price {
+        font-size: 16px;
+        color: var(--ion-color-neutral-gray-light);
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+
+      .savings {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ion-color-primary);
+        background: rgba(108, 216, 78, 0.15);
+        padding: 4px 8px;
+        border-radius: 8px;
+      }
+    }
+
+    .duration {
+      font-size: 14px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0;
+    }
+  }
+
+  .plan-features {
+    flex: 1;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .feature-icon {
+        font-size: 20px;
+        color: var(--ion-color-primary);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .feature-text {
+        font-size: 14px;
+        color: var(--ion-color-neutral-gray-light);
+        line-height: 1.5;
+      }
+    }
+  }
+
+  .subscribe-button {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-neutral-black);
+    --border-radius: 16px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    height: 52px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    box-shadow: 
+      0 4px 16px rgba(108, 216, 78, 0.3),
+      0 0 0 1px rgba(108, 216, 78, 0.1) inset;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: auto;
+    border-radius: 20px;
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &.active-plan {
+      --background: rgba(108, 216, 78, 0.2);
+      --color: var(--ion-color-primary);
+      box-shadow: none;
+      border: 1px solid rgba(108, 216, 78, 0.3);
+      cursor: default;
+    }
+
+    ion-icon {
+      font-size: 18px;
+      margin-right: 8px;
+    }
+  }
+}
+
+// Header Styling
+ion-header {
+  ion-toolbar {
+    --background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    --color: var(--ion-color-neutral-white);
+    --border-width: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  ion-menu-button {
+    --color: var(--ion-color-neutral-white);
+  }
+
+  ion-title {
+    color: var(--ion-color-neutral-white);
+    font-weight: 600;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .subscriptions-container {
+    padding: 16px;
+  }
+
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .plan-card {
+    padding: 24px 20px;
+  }
+
+  .active-subscription-card {
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .plans-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+

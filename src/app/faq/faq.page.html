@@ -1,0 +1,98 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>FAQ</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="faq-container">
+    <!-- Header Section -->
+    <div class="faq-header" [@fadeInUp]>
+      <div class="header-content">
+        <h2 class="header-title">Frequently Asked Questions</h2>
+        <p class="header-subtitle">Find answers to common questions about MoneyCraft Trader</p>
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="category-filter" [@fadeInUp]>
+      <div class="category-buttons-wrapper">
+        <ion-button 
+          *ngFor="let category of categories"
+          [class.active]="selectedCategory === category.id"
+          (click)="selectedCategory = category.id"
+          class="category-button"
+        >
+          <ion-icon [name]="category.icon" slot="start"></ion-icon>
+          <span class="category-label">{{ category.label }}</span>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- FAQ Items -->
+    <div class="faq-list">
+      <div 
+        *ngFor="let faq of getFilteredFAQs(); trackBy: trackByFaqId" 
+        class="faq-item"
+        [@fadeInUp]
+      >
+        <div 
+          class="faq-question"
+          (click)="toggleItem(faq.id)"
+          [class.expanded]="isExpanded(faq.id)"
+        >
+          <div class="question-content">
+            <div class="question-icon-wrapper">
+              <ion-icon [name]="faq.icon" class="question-icon"></ion-icon>
+            </div>
+            <h3 class="question-text">{{ faq.question }}</h3>
+          </div>
+          <ion-icon 
+            [name]="isExpanded(faq.id) ? 'chevron-up' : 'chevron-down'" 
+            class="expand-icon"
+          ></ion-icon>
+        </div>
+        
+        <div 
+          class="faq-answer"
+          [@expand]
+          *ngIf="isExpanded(faq.id)"
+        >
+          <div class="answer-content">
+            <p class="answer-text">{{ faq.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="contact-section" [@fadeInUp]>
+      <div class="contact-card">
+        <ion-icon name="chatbubbles-outline" class="contact-icon"></ion-icon>
+        <h3 class="contact-title">Still have questions?</h3>
+        <p class="contact-message">Can't find the answer you're looking for? Our support team is here to help!</p>
+        <div class="contact-info">
+          <div class="contact-item">
+            <ion-icon name="mail-outline" class="contact-item-icon"></ion-icon>
+            <span>support@moneycrafttrader.com</span>
+          </div>
+          <div class="contact-item">
+            <ion-icon name="call-outline" class="contact-item-icon"></ion-icon>
+            <span>+91 74992 40812</span>
+          </div>
+        </div>
+        <ion-button 
+          expand="block" 
+          class="contact-button"
+          routerLink="/support"
+        >
+          <ion-icon name="help-circle-outline" slot="start"></ion-icon>
+          Contact Support
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,103 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Notifications</ion-title>
+    <ion-buttons slot="end">
+      <ion-button 
+        (click)="clearAllNotifications()" 
+        [disabled]="notifications.length === 0"
+        class="clear-all-button"
+      >
+        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="notifications-container">
+    <!-- Header Section -->
+    <div class="notifications-header" [@fadeInUp]>
+      <div class="header-content">
+        <h2 class="header-title">Notifications</h2>
+        <p class="header-subtitle" *ngIf="getUnreadCount() > 0">
+          {{ getUnreadCount() }} unread notification{{ getUnreadCount() > 1 ? 's' : '' }}
+        </p>
+        <p class="header-subtitle" *ngIf="getUnreadCount() === 0">
+          All caught up!
+        </p>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list" [@listAnimation]>
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="notifications.length === 0" [@fadeInUp]>
+        <ion-icon name="notifications-off-outline" class="empty-icon"></ion-icon>
+        <h3 class="empty-title">No Notifications</h3>
+        <p class="empty-message">You're all caught up! No new notifications at the moment.</p>
+      </div>
+
+      <!-- Notification Items -->
+      <ion-item-sliding 
+        *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+        [@slideOut]
+        class="notification-item-wrapper"
+      >
+        <ion-item 
+          class="notification-item"
+          [class.unread]="!notification.read"
+          [class.high-priority]="getNotificationType(notification.type) === 'high-priority'"
+          [class.offer]="getNotificationType(notification.type) === 'offer'"
+          [class.alert]="getNotificationType(notification.type) === 'alert'"
+          (click)="markAsRead(notification)"
+        >
+          <!-- Notification Icon -->
+          <div 
+            class="notification-icon-wrapper"
+            slot="start"
+            [style.background]="getNotificationBgColor(notification.type)"
+            [style.border-color]="getNotificationColor(notification.type)"
+          >
+            <ion-icon 
+              [name]="getNotificationIcon(notification.type)" 
+              class="notification-icon"
+              [style.color]="getNotificationColor(notification.type)"
+            ></ion-icon>
+          </div>
+
+          <!-- Notification Content -->
+          <div class="notification-content">
+            <div class="notification-header-row">
+              <h3 class="notification-title">{{ notification.title }}</h3>
+              <span class="notification-time">{{ getTimeAgo(notification.createdAt) }}</span>
+            </div>
+            <p class="notification-message">{{ notification.message }}</p>
+            <div class="notification-type-badge" [style.background]="getNotificationBgColor(notification.type)">
+              <span [style.color]="getNotificationColor(notification.type)">
+                {{ getNotificationTypeLabel(notification.type) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Unread Indicator -->
+          <div class="unread-indicator" *ngIf="!notification.read" slot="end"></div>
+        </ion-item>
+
+        <!-- Swipe to Delete -->
+        <ion-item-options side="end">
+          <ion-item-option 
+            color="danger" 
+            (click)="deleteNotification(notification._id)"
+            class="delete-option"
+          >
+            <ion-icon name="trash"></ion-icon>
+            <span>Delete</span>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </div>
+  </div>
+</ion-content>

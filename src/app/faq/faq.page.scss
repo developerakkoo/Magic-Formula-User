@@ -1,0 +1,395 @@
+@use "../../theme/app-theme.scss";
+
+.faq-container {
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+// Header Section
+.faq-header {
+  margin-bottom: 32px;
+
+  .header-content {
+    .header-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--ion-color-neutral-white);
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, var(--ion-color-primary) 0%, #BAFFA6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 16px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0;
+    }
+  }
+}
+
+// Category Filter
+.category-filter {
+  margin-bottom: 32px;
+
+  .category-buttons-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+
+    .category-button {
+      --background: transparent;
+      --color: var(--ion-color-neutral-gray-light);
+      --border-radius: 12px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 10px;
+      --padding-bottom: 10px;
+      height: auto;
+      margin: 0;
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 20px;
+      text-transform: none;
+      border: 1px solid transparent;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      ion-icon {
+        font-size: 18px;
+        margin-right: 6px;
+      }
+
+      .category-label {
+        display: inline-block;
+      }
+
+      &.active {
+        --background: rgba(108, 216, 78, 0.15);
+        --color: var(--ion-color-neutral-white);
+        border-color: rgba(108, 216, 78, 0.3);
+        box-shadow: 0 2px 8px rgba(108, 216, 78, 0.2);
+      }
+
+      &:hover:not(.active) {
+        --background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// FAQ List
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+// FAQ Item
+.faq-item {
+  background: rgba(15, 15, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: rgba(108, 216, 78, 0.3);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(108, 216, 78, 0.2) inset;
+  }
+
+  .faq-question {
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    &.expanded {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .question-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      min-width: 0;
+
+      .question-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(108, 216, 78, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 1px solid rgba(108, 216, 78, 0.2);
+
+        .question-icon {
+          font-size: 20px;
+          color: var(--ion-color-primary);
+        }
+      }
+
+      .question-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ion-color-neutral-white);
+        margin: 0;
+        line-height: 1.5;
+        flex: 1;
+      }
+    }
+
+    .expand-icon {
+      font-size: 24px;
+      color: var(--ion-color-neutral-gray-light);
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    &.expanded .expand-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  .faq-answer {
+    overflow: hidden;
+
+    .answer-content {
+      padding: 0 20px 20px 76px;
+
+      .answer-text {
+        font-size: 14px;
+        color: var(--ion-color-neutral-gray-light);
+        line-height: 1.8;
+        margin: 0;
+        white-space: pre-line;
+      }
+    }
+  }
+}
+
+// Contact Section
+.contact-section {
+  margin-top: 40px;
+
+  .contact-card {
+    background: linear-gradient(135deg, rgba(108, 216, 78, 0.1) 0%, rgba(30, 202, 193, 0.1) 100%);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid rgba(108, 216, 78, 0.2);
+    box-shadow: 
+      0 8px 32px rgba(108, 216, 78, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    text-align: center;
+
+    .contact-icon {
+      font-size: 64px;
+      color: var(--ion-color-primary);
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 20px rgba(108, 216, 78, 0.4));
+    }
+
+    .contact-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ion-color-neutral-white);
+      margin: 0 0 12px 0;
+    }
+
+    .contact-message {
+      font-size: 16px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0 0 24px 0;
+      line-height: 1.6;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+      align-items: center;
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        color: var(--ion-color-neutral-white);
+        font-weight: 500;
+
+        .contact-item-icon {
+          font-size: 20px;
+          color: var(--ion-color-primary);
+        }
+      }
+    }
+
+    .contact-button {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-neutral-black);
+      --border-radius: 16px;
+      --padding-top: 16px;
+      --padding-bottom: 16px;
+      height: 52px;
+      font-weight: 700;
+      border-radius: 20px;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+      box-shadow: 
+        0 4px 16px rgba(108, 216, 78, 0.3),
+        0 0 0 1px rgba(108, 216, 78, 0.1) inset;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      ion-icon {
+        font-size: 18px;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Header Styling
+ion-header {
+  ion-toolbar {
+    --background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    --color: var(--ion-color-neutral-white);
+    --border-width: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  ion-menu-button {
+    --color: var(--ion-color-neutral-white);
+  }
+
+  ion-title {
+    color: var(--ion-color-neutral-white);
+    font-weight: 600;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .faq-container {
+    padding: 16px;
+  }
+
+  .faq-header {
+    margin-bottom: 24px;
+
+    .header-content .header-title {
+      font-size: 28px;
+    }
+  }
+
+  .category-filter {
+    margin-bottom: 24px;
+
+    .category-buttons-wrapper {
+      padding: 6px;
+      gap: 8px;
+
+      .category-button {
+        --padding-start: 10px;
+        --padding-end: 10px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+        font-size: 11px;
+
+        ion-icon {
+          font-size: 16px;
+          margin-right: 4px;
+        }
+
+        .category-label {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .faq-item {
+    .faq-question {
+      padding: 16px;
+
+      .question-content {
+        gap: 12px;
+
+        .question-icon-wrapper {
+          width: 36px;
+          height: 36px;
+
+          .question-icon {
+            font-size: 18px;
+          }
+        }
+
+        .question-text {
+          font-size: 15px;
+        }
+      }
+    }
+
+    .faq-answer .answer-content {
+      padding: 0 16px 16px 64px;
+
+      .answer-text {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .contact-section .contact-card {
+    padding: 24px 20px;
+
+    .contact-icon {
+      font-size: 48px;
+    }
+
+    .contact-title {
+      font-size: 20px;
+    }
+
+    .contact-info {
+      .contact-item {
+        font-size: 14px;
+      }
+    }
+  }
+}
+

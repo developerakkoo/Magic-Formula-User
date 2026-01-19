@@ -1,31 +1,57 @@
 <ion-app>
   <ion-split-pane contentId="main-content">
     <ion-menu contentId="main-content" type="overlay">
-      <ion-content>
-        <ion-list id="inbox-list">
-          <ion-list-header>Inbox</ion-list-header>
-          <ion-note>hi&#64;ionicframework.com</ion-note>
+      <ion-content class="menu-content">
+        <!-- Menu Header -->
+        <div class="menu-header">
+          <h1 class="menu-title">MoneyCraft Traders</h1>
+        </div>
 
+        <!-- Menu Items -->
+        <ion-list id="menu-list">
           @for (p of appPages; track p; let i = $index) {
             <ion-menu-toggle auto-hide="false">
-              <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false" routerLinkActive="selected">
-                <ion-icon aria-hidden="true" slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'"></ion-icon>
-                <ion-label>{{ p.title }}</ion-label>
+              <ion-item 
+                routerDirection="root" 
+                [routerLink]="[p.url]" 
+                lines="none" 
+                detail="false" 
+                routerLinkActive="selected"
+                class="menu-item"
+              >
+                <ion-icon aria-hidden="true" slot="start" [name]="p.icon" class="menu-icon"></ion-icon>
+                <ion-label class="menu-label">{{ p.title }}</ion-label>
+                <ion-badge 
+                  *ngIf="p.title === 'Notifications' && unreadCount > 0" 
+                  color="danger" 
+                  slot="end"
+                  class="notification-badge"
+                >
+                  {{ unreadCount }}
+                </ion-badge>
+                <ion-icon name="chevron-forward-outline" slot="end" class="menu-arrow" *ngIf="p.title !== 'Notifications' || unreadCount === 0"></ion-icon>
               </ion-item>
             </ion-menu-toggle>
           }
         </ion-list>
 
-        <ion-list id="labels-list">
-          <ion-list-header>Labels</ion-list-header>
+        <!-- Footer Section -->
+        <div class="menu-footer">
+          <!-- Subscription Badge - Only show when expiring in 7 days or less -->
+          <div *ngIf="showExpiryWarning && subscriptionExpiryDays !== null" class="subscription-badge">
+            <ion-icon name="time-outline" class="badge-icon"></ion-icon>
+            <div class="badge-content">
+              <span class="badge-text">Your subscription is expiring in</span>
+              <span class="badge-days">{{ subscriptionExpiryDays }} {{ subscriptionExpiryDays === 1 ? 'day' : 'days' }}</span>
+            </div>
+          </div>
 
-          @for (label of labels; track label) {
-            <ion-item lines="none">
-              <ion-icon aria-hidden="true" slot="start" ios="bookmark-outline" md="bookmark-sharp"></ion-icon>
-              <ion-label>{{ label }}</ion-label>
-            </ion-item>
-          }
-        </ion-list>
+          <!-- Logout Button -->
+          <ion-button expand="block" class="logout-button" (click)="onLogout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Logout
+          </ion-button>
+        </div>
       </ion-content>
     </ion-menu>
     <ion-router-outlet id="main-content"></ion-router-outlet>

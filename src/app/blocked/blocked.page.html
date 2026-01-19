@@ -1,0 +1,90 @@
+<ion-content [fullscreen]="true" class="app-bg-gradient blocked-content">
+  <div class="blocked-container">
+    <!-- Blocked Icon -->
+    <div class="blocked-icon-wrapper" [@pulse]>
+      <ion-icon name="ban-outline" class="blocked-icon"></ion-icon>
+    </div>
+
+    <!-- Main Message Card -->
+    <div class="blocked-card" [@fadeInScale]>
+      <!-- Header -->
+      <div class="blocked-header">
+        <h1 class="blocked-title">Account Blocked</h1>
+        <p class="blocked-subtitle">{{ blockMessage }}</p>
+      </div>
+
+      <!-- Reason Section -->
+      <div class="reason-section" [@fadeInUp]>
+        <div class="reason-header">
+          <ion-icon name="information-circle-outline" class="reason-icon"></ion-icon>
+          <h2 class="reason-title">Reason for Block</h2>
+        </div>
+        <div class="reason-content">
+          <p class="reason-text">
+            Accessed account from other device as we told not to do it.
+          </p>
+        </div>
+      </div>
+
+      <!-- Penalty Section -->
+      <div class="penalty-section" [@fadeInUp]>
+        <div class="penalty-info">
+          <ion-icon name="warning-outline" class="penalty-icon"></ion-icon>
+          <div class="penalty-content">
+            <h3 class="penalty-title">Penalty Fee Required</h3>
+            <p class="penalty-description">
+              To access your account, you need to pay the penalty fee as per our terms and conditions.
+            </p>
+          </div>
+        </div>
+        <div class="penalty-amount">
+          <span class="amount-label">Penalty Amount</span>
+          <span class="amount-value">₹{{ penaltyAmount }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-section" [@fadeInUp]>
+        <ion-button
+          expand="block"
+          class="logout-button"
+          (click)="logout()"
+        >
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          Return to Login
+        </ion-button>
+        <ion-button
+          *ngIf="isDeviceMismatch"
+          expand="block"
+          class="pay-penalty-button"
+          (click)="payPenalty()"
+          [disabled]="isPayingPenalty"
+        >
+          <ion-spinner *ngIf="isPayingPenalty" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!isPayingPenalty" name="card-outline" slot="start"></ion-icon>
+          <span *ngIf="!isPayingPenalty">Pay Penalty ₹{{ penaltyAmount }}</span>
+          <span *ngIf="isPayingPenalty">Processing...</span>
+        </ion-button>
+        <ion-button
+          *ngIf="!isDeviceMismatch"
+          expand="block"
+          fill="outline"
+          class="pay-penalty-button"
+          (click)="payPenaltyAndAccess()"
+        >
+          <ion-icon name="card-outline" slot="start"></ion-icon>
+          Pay Penalty and Access Account
+        </ion-button>
+      </div>
+
+      <!-- Help Text -->
+      <div class="help-section" [@fadeInUp]>
+        <p class="help-text">
+          <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+          Need assistance? Contact support at 
+          <a href="mailto:support@moneycrafttrader.com" class="support-link">support@moneycrafttrader.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>
