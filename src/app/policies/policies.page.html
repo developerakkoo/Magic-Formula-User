@@ -1,0 +1,84 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Company Policies</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="app-bg-gradient">
+  <div class="policies-container">
+    <!-- Header Section -->
+    <div class="policies-header" [@fadeInUp]>
+      <div class="header-content">
+        <h2 class="header-title">Company Policies</h2>
+        <p class="header-subtitle">Review our policies and terms of service</p>
+      </div>
+    </div>
+
+    <!-- Policies List -->
+    <div class="policies-list">
+      <div 
+        *ngFor="let policy of policies; trackBy: trackByPolicyId" 
+        class="policy-item"
+        [@fadeInUp]
+      >
+        <div 
+          class="policy-header"
+          (click)="togglePolicy(policy.id)"
+          [class.expanded]="isExpanded(policy.id)"
+        >
+          <div class="header-content-wrapper">
+            <div class="policy-icon-wrapper">
+              <ion-icon [name]="policy.icon" class="policy-icon"></ion-icon>
+            </div>
+            <h3 class="policy-title">{{ policy.title }}</h3>
+          </div>
+          <ion-icon 
+            [name]="isExpanded(policy.id) ? 'chevron-up' : 'chevron-down'" 
+            class="expand-icon"
+          ></ion-icon>
+        </div>
+        
+        <div 
+          class="policy-content"
+          [@expand]
+          *ngIf="isExpanded(policy.id)"
+        >
+          <div class="content-wrapper">
+            <p class="policy-text">{{ policy.content }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="contact-section" [@fadeInUp]>
+      <div class="contact-card">
+        <ion-icon name="help-circle-outline" class="contact-icon"></ion-icon>
+        <h3 class="contact-title">Have Questions?</h3>
+        <p class="contact-message">If you have any questions about our policies or need clarification, our support team is here to help!</p>
+        <div class="contact-info">
+          <div class="contact-item">
+            <ion-icon name="mail-outline" class="contact-item-icon"></ion-icon>
+            <span>support@moneycrafttrader.com</span>
+          </div>
+          <div class="contact-item">
+            <ion-icon name="call-outline" class="contact-item-icon"></ion-icon>
+            <span>+91 74992 40812</span>
+          </div>
+        </div>
+        <ion-button 
+          expand="block" 
+          class="contact-button"
+          routerLink="/support"
+        >
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          Contact Support
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

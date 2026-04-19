@@ -257,25 +257,38 @@
   --background: var(--ion-color-primary);
   --color: var(--ion-color-neutral-black);
   --border-radius: 16px;
+  --border-width: 0;
+  --border-style: none;
+  --border-color: transparent;
+  // Inner .button-native uses var(--box-shadow); host-level box-shadow is ignored
+  --box-shadow:
+    0 4px 16px rgba(108, 216, 78, 0.3),
+    0 0 0 1px rgba(108, 216, 78, 0.12) inset;
+  --background-activated: var(--ion-color-primary-shade, #5fbe44);
+  --background-focused: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary-tint, #7bdc60);
+  --background-activated-opacity: 1;
+  --background-focused-opacity: 0.2;
+  --background-hover-opacity: 0.12;
   --padding-top: 18px;
   --padding-bottom: 18px;
   height: 56px;
   font-weight: 700;
   font-size: 16px;
   letter-spacing: 0.3px;
-  box-shadow: 
-    0 4px 16px rgba(108, 216, 78, 0.3),
-    0 0 0 1px rgba(108, 216, 78, 0.1) inset;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin: 0;
   animation: buttonBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
   animation-delay: 0.4s;
 
-  &:not([disabled]):active {
+  &:not([disabled]):active,
+  &.ion-activated:not([disabled]) {
     transform: scale(0.98);
-    box-shadow: 
-      0 2px 8px rgba(108, 216, 78, 0.2),
-      0 0 0 1px rgba(108, 216, 78, 0.1) inset;
+    --box-shadow:
+      0 2px 10px rgba(108, 216, 78, 0.25),
+      0 0 0 1px rgba(108, 216, 78, 0.15) inset;
   }
 }
 
@@ -297,7 +310,8 @@
   &[disabled] {
     --background: rgba(73, 73, 73, 0.3);
     --color: rgba(214, 214, 214, 0.4);
-    box-shadow: none;
+    --box-shadow: none;
+    --border-width: 0;
     cursor: not-allowed;
   }
 
@@ -423,4 +437,10 @@
 ion-button:focus-visible {
   outline: 2px solid var(--ion-color-primary);
   outline-offset: 2px;
+}
+
+.signin-button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+  border-radius: 16px;
 }

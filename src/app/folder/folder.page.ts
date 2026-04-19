@@ -52,7 +52,7 @@ export class FolderPage implements OnInit {
   public hasActiveSubscription: boolean = false;
   public isCheckingSubscription: boolean = true;
   public activeSubscription: any = null;
-  
+
   private activatedRoute = inject(ActivatedRoute);
   
   constructor(
@@ -108,17 +108,16 @@ export class FolderPage implements OnInit {
   onSegmentChange(event: any) {
     this.selectedSegment = event.detail.value;
     console.log('Segment changed to:', this.selectedSegment);
-    
-    // Reset results when switching tabs
+
     this.showResults = false;
-    
-    // Update form validation based on selected segment
+    this.applySegmentValidators();
+  }
+
+  private applySegmentValidators(): void {
     if (this.selectedSegment === 'stock') {
-      // Stock tab: stockName and futureClosePrice are optional
       this.calculatorForm.get('stockName')?.clearValidators();
-      this.calculatorForm.get('futureClosePrice')?.clearValidators();
+      this.calculatorForm.get('futureClosePrice')?.setValidators([Validators.required, Validators.min(0)]);
     } else {
-      // NIFTY tab: stockName and futureClosePrice not needed
       this.calculatorForm.get('stockName')?.clearValidators();
       this.calculatorForm.get('futureClosePrice')?.clearValidators();
     }
@@ -126,15 +125,54 @@ export class FolderPage implements OnInit {
     this.calculatorForm.get('futureClosePrice')?.updateValueAndValidity();
   }
 
+  clearCalculatorInputs(): void {
+    this.calculatorForm.reset({
+      open: '',
+      high: '',
+      low: '',
+      last: '',
+      stockName: '',
+      futureClosePrice: ''
+    });
+    this.showResults = false;
+    this.pivotResults = {
+      entryPoint: 0,
+      stopLoss: 0,
+      targetOne: 0,
+      targetTwo: 0,
+      targetThree: 0,
+      targetFour: 0,
+      targetFive: 0
+    };
+    this.applySegmentValidators();
+  }
+
   // Helper function to round up to nearest integer
   roundUp(value: number): number {
     return Math.ceil(value);
   }
 
+  roundDown(value: number): number {
+    return Math.floor(value);
+  }
+
+  /**
+   * Stock target tick: floor to 0.05 (e.g. 10.43 -> 10.40, 10.49 -> 10.45, 10.46 -> 10.45, 10.41 -> 10.40).
+   */
+  roundStockTargetToNickel(value: number): number {
+    return Math.floor(value * 20 + 1e-9) / 20;
+  }
+
   // Calculate Camarilla Pivot Points (for Entry/Stop Loss)
   calculateCamarillaPivotPoints(high: number, low: number, last: number) {
+    console.group('[Stock Tab] Camarilla Pivot Points Calculation');
+    console.log('[Step 1] Input values:', { high, low, last });
+    
     const range = high - low;
+    console.log('[Step 2] Range:', range, `(HIGH - LOW: ${high} - ${low})`);
+    
     const pp = (high + low + last) / 3;
+    console.log('[Step 3] Pivot Point (PP):', pp, `((HIGH + LOW + LAST) / 3: (${high} + ${low} + ${last}) / 3)`);
     
     const r1 = last + (range * 1.1) / 12;
     const r2 = last + (range * 1.1) / 6;
@@ -146,20 +184,67 @@ export class FolderPage implements OnInit {
     const s3 = last - (range * 1.1) / 4;
     const s4 = last - (range * 1.1) / 2;
     
+    console.log('[Step 4] Resistance levels:', { r1, r2, r3, r4 });
+    console.log('[Step 5] Support levels:', { s1, s2, s3, s4 });
+    console.log('[Result] Camarilla values:', { pp, r1, r2, r3, r4, s1, s2, s3, s4 });
+    console.groupEnd();
+    
     return { pp, r1, r2, r3, r4, s1, s2, s3, s4 };
   }
 
   // Calculate Classic Pivot Points (for Targets)
+  // Formulas based on demo_new.html Classic calculation
   calculateClassicPivotPoints(high: number, low: number, last: number) {
+    console.group('[Stock Tab] Classic Pivot Points Calculation');
+    console.log('[Step 1] Input values:', { high, low, last });
+    
+    // Calculate Range
+    const range = high - low;
+    console.log('[Step 2] Range:', range, `(HIGH - LOW: ${high} - ${low})`);
+    
+    // Pivot Point (PP) = (HIGH + LOW + LAST) / 3
     const pp = (high + low + last) / 3;
+    console.log('[Step 3] Pivot Point (PP):', pp, `((HIGH + LOW + LAST) / 3: (${high} + ${low} + ${last}) / 3)`);
     
+    // Classic Resistance Levels (from demo):
+    // R4 = PP + RANGE × 3
+    const r4 = pp + range * 3;
+    console.log('[Step 4] R4:', r4, `(PP + RANGE × 3: ${pp} + ${range} × 3)`);
+    
+    
+    // R3 = PP + RANGE × 2
+    const r3 = pp + range * 2;
+    console.log('[Step 5] R3:', r3, `(PP + RANGE × 2: ${pp} + ${range} × 2)`);
+    
+    // R2 = PP + RANGE
+    const r2 = pp + range;
+    console.log('[Step 6] R2:', r2, `(PP + RANGE: ${pp} + ${range})`);
+    
+    // R1 = 2 × PP - LOW
     const r1 = 2 * pp - low;
-    const r2 = pp + (high - low);
-    const r3 = high + 2 * (pp - low);
-    const r4 = high + 3 * (pp - low);
-    const r5 = high + 4 * (pp - low);
+    console.log('[Step 7] R1:', r1, `(2 × PP - LOW: 2 × ${pp} - ${low})`);
     
-    return { pp, r1, r2, r3, r4, r5 };
+    // Classic Support Levels (from demo):
+    // S1 = 2 × PP - HIGH
+    const s1 = 2 * pp - high;
+    console.log('[Step 8] S1:', s1, `(2 × PP - HIGH: 2 × ${pp} - ${high})`);
+    
+    // S2 = PP - RANGE
+    const s2 = pp - range;
+    console.log('[Step 9] S2:', s2, `(PP - RANGE: ${pp} - ${range})`);
+    
+    // S3 = PP - RANGE × 2
+    const s3 = pp - range * 2;
+    console.log('[Step 10] S3:', s3, `(PP - RANGE × 2: ${pp} - ${range} × 2)`);
+    
+    // S4 = PP - RANGE × 3
+    const s4 = pp - range * 3;
+    console.log('[Step 11] S4:', s4, `(PP - RANGE × 3: ${pp} - ${range} × 3)`);
+    
+    console.log('[Result] Classic values:', { pp, r1, r2, r3, r4, s1, s2, s3, s4 });
+    console.groupEnd();
+    
+    return { pp, r1, r2, r3, r4, s1, s2, s3, s4 };
   }
 
   // Calculate NIFTY Entry Point and Stop Loss
@@ -176,161 +261,427 @@ export class FolderPage implements OnInit {
   }
 
   // Calculate NIFTY Targets
-  calculateNiftyTargets(classicR1: number, classicR2: number) {
-    // Target 1 = R1 (Classic)
-    const targetOne = classicR1;
+  // IMPORTANT: All calculations use exact values with NO rounding applied
+  // Rounding only occurs in display formatting (number pipe in template)
+  calculateNiftyTargets(classicPP: number, classicR1: number, classicR2: number) {
+    // Target 1 = (PP + R1) / 2 - midpoint of PP and R1, exact value, no rounding
+    const targetOne = (classicPP + classicR1) / 2;
     
-    // Target 2 = midpoint(R1, R2) (Classic)
-    const targetTwo = (classicR1 + classicR2) / 2;
+    // Target 2 = MIDPOINT ((R1 + R2) / 2) - exact midpoint calculation, NO rounding
+    // This is the exact mathematical midpoint between R1 and R2
+    // const targetTwo = (classicR1 + classicR2) / 2;
+    const targetTwo = classicR1;
+
+
+    const targetThree = (classicR1 + classicR2) / 2;
+    // Target 3 = R2 (Classic) - exact value, no rounding
+    const targetFour = classicR2;
     
-    // Target 3 = R2 (Classic)
-    const targetThree = classicR2;
+    // Target 4 = R2 + 16 - exact calculation, no rounding
+    const targetFive = classicR2 + 16;
+
+    console.log('[NIFTY Tab] Targets:', { targetOne, targetTwo, targetThree, targetFour, targetFive });
     
-    // Target 4 = R2 + 16
-    const targetFour = classicR2 + 16;
     
-    // Target 5 = Target 4 + 20
-    const targetFive = targetFour + 20;
-    
-    return { targetOne, targetTwo, targetThree, targetFour, targetFive };
+    // Target 5 = Target 4 + 20 - uses exact Target 4 value, no rounding
+    // const targetFive = targetFour + 20;
+    // Round Target Five to 2 decimal places
+    const targetFiveRounded = this.roundDown(targetFive);
+    const targetFourRounded = this.roundDown(targetFour);
+    const targetThreeRounded = this.roundDown(targetThree);
+    const targetTwoRounded = this.roundDown(targetTwo);
+    const targetOneRounded = this.roundDown(targetOne);
+
+    return { targetOneRounded, targetTwoRounded, targetThreeRounded, targetFourRounded, targetFiveRounded };
+  }
+
+  /**
+   * Stock options: Classic ladder T1..T5 from PP, R1, R2, R3 (nickel-rounded).
+   */
+  calculateStockTargetsFromClassic(pp: number, r1: number, r2: number, r3: number) {
+    console.group('[Stock Tab] Classic target ladder');
+    const targetOneRounded = this.roundStockTargetToNickel((pp + r1) / 2);
+    const targetTwoRounded = this.roundStockTargetToNickel(r1);
+    const targetThreeRounded = this.roundStockTargetToNickel((r1 + r2) / 2);
+    const targetFourRounded = this.roundStockTargetToNickel(r2);
+    const targetFiveRounded = this.roundStockTargetToNickel((r2 + r3) / 2);
+    console.log('[Result] Base targets:', {
+      targetOneRounded,
+      targetTwoRounded,
+      targetThreeRounded,
+      targetFourRounded,
+      targetFiveRounded,
+    });
+    console.groupEnd();
+    return {
+      targetOneRounded,
+      targetTwoRounded,
+      targetThreeRounded,
+      targetFourRounded,
+      targetFiveRounded,
+    };
+  }
+
+  /**
+   * Drops targets strictly below entry, relabels, then fills from classic R3/R4 (+step pattern).
+   * Used for NIFTY (integer floor) and Stock (nickel floor).
+   */
+  private finalizeTargetsAgainstEntry(
+    entryPoint: number,
+    classic: { r3: number; r4: number },
+    base: {
+      targetOneRounded: number;
+      targetTwoRounded: number;
+      targetThreeRounded: number;
+      targetFourRounded: number;
+      targetFiveRounded: number;
+    },
+    options: { roundLevel: (n: number) => number; step: number; logLabel: string }
+  ): {
+    targetOneRounded: number;
+    targetTwoRounded: number;
+    targetThreeRounded: number;
+    targetFourRounded: number;
+    targetFiveRounded: number;
+  } {
+    const { roundLevel, step, logLabel } = options;
+    const baseArr = [
+      base.targetOneRounded,
+      base.targetTwoRounded,
+      base.targetThreeRounded,
+      base.targetFourRounded,
+      base.targetFiveRounded,
+    ];
+
+    if (baseArr.every((t) => t >= entryPoint)) {
+      return base;
+    }
+
+    console.group(`[${logLabel}] Finalize targets vs entry`);
+    console.log('[Step 1] Entry:', entryPoint, 'Base targets:', baseArr);
+
+    const filtered = baseArr.filter((t) => t >= entryPoint);
+    const valid = [...new Set(filtered)].sort((a, b) => a - b);
+
+    const extensions = [
+      roundLevel(classic.r3),
+      roundLevel(classic.r3 + step),
+      roundLevel(classic.r4),
+      roundLevel(classic.r4 + step),
+    ];
+
+    const chain: number[] = [...valid];
+
+    for (const c of extensions) {
+      if (chain.length >= 5) {
+        break;
+      }
+      const prev = chain.length === 0 ? undefined : chain[chain.length - 1];
+      if (prev === undefined) {
+        if (c >= entryPoint) {
+          chain.push(c);
+        }
+      } else if (c > prev) {
+        chain.push(c);
+      }
+    }
+
+    if (chain.length === 0) {
+      console.warn(
+        `[${logLabel}] No targets at or above entry from base or R3/R4 extensions; using +${step} ladder above entry.`
+      );
+      let k = 1;
+      while (chain.length < 5) {
+        chain.push(roundLevel(entryPoint + k * step));
+        k += 1;
+      }
+    } else {
+      while (chain.length < 5) {
+        const last = chain[chain.length - 1];
+        chain.push(roundLevel(last + step));
+      }
+    }
+
+    const finalFive = chain.slice(0, 5);
+    console.log('[Result] Final targets:', finalFive);
+    console.groupEnd();
+
+    return {
+      targetOneRounded: finalFive[0],
+      targetTwoRounded: finalFive[1],
+      targetThreeRounded: finalFive[2],
+      targetFourRounded: finalFive[3],
+      targetFiveRounded: finalFive[4],
+    };
   }
 
   // Round Entry Point for Stock Options
   // Examples: 1.74 → 1.75, 1.81 → 1.85, 1.75 → 1.75, 1.56 → 1.60, 1.89 → 1.90, 1.01 → 1.05, 1.06 → 1.10
   roundEntryPoint(value: number): number {
+    console.group('[Stock Tab] Entry Point Rounding');
+    console.log('[Step 1] Input value:', value);
+    
     // Round to 2 decimal places first to handle floating point precision
     const rounded = Math.round(value * 100) / 100;
+    console.log('[Step 2] Rounded to 2 decimals:', rounded);
     
     // Get the integer part and decimal part
     const integerPart = Math.floor(rounded);
     const decimalPart = rounded - integerPart;
+    console.log('[Step 3] Integer part:', integerPart, 'Decimal part:', decimalPart);
     
     // Get the last decimal digit (hundredths place)
     const lastDigit = Math.round((decimalPart * 100) % 10);
+    console.log('[Step 4] Last digit (hundredths place):', lastDigit);
+    
+    let result: number;
+    let rule: string;
     
     if (lastDigit === 0) {
       // Already rounded to .00, .10, .20, etc. (like 1.00, 1.10, 1.20)
-      return rounded;
+      result = rounded;
+      rule = 'Keep as is (last digit is 0)';
     } else if (lastDigit >= 1 && lastDigit <= 4) {
       // Round up to 5 (e.g., 1.74 → 1.75, 1.81 → 1.85, 1.01 → 1.05)
       const tensPlace = Math.floor(decimalPart * 10);
-      return integerPart + tensPlace / 10 + 0.05;
+      result = integerPart + tensPlace / 10 + 0.05;
+      rule = `Round up to 5 (last digit is ${lastDigit})`;
     } else if (lastDigit === 5) {
       // Keep as is (e.g., 1.75 → 1.75, 1.5 → 1.5)
-      return rounded;
+      result = rounded;
+      rule = 'Keep as is (last digit is 5)';
     } else if (lastDigit >= 6 && lastDigit <= 9) {
       // Round up to next 0 (e.g., 1.56 → 1.60, 1.89 → 1.90, 1.06 → 1.10)
       const tensPlace = Math.ceil(decimalPart * 10);
-      return integerPart + tensPlace / 10;
+      result = integerPart + tensPlace / 10;
+      rule = `Round up to next 0 (last digit is ${lastDigit})`;
+    } else {
+      result = rounded;
+      rule = 'Fallback (no rule matched)';
     }
     
-    return rounded;
+    console.log('[Step 5] Rule applied:', rule);
+    console.log('[Result] Final rounded value:', result);
+    console.groupEnd();
+    
+    return result;
   }
 
   // Round Stop Loss for Stock Options
   // Examples: 1.71 → 1.70, 1.83 → 1.80, 1.75 → 1.75, 1.76 → 1.75, 1.89 → 1.85
   roundStopLoss(value: number): number {
+    console.group('[Stock Tab] Stop Loss Rounding');
+    console.log('[Step 1] Input value:', value);
+    
     // Round to 2 decimal places first to handle floating point precision
     const rounded = Math.round(value * 100) / 100;
+    console.log('[Step 2] Rounded to 2 decimals:', rounded);
     
     // Get the integer part and decimal part
     const integerPart = Math.floor(rounded);
     const decimalPart = rounded - integerPart;
+    console.log('[Step 3] Integer part:', integerPart, 'Decimal part:', decimalPart);
     
     // Get the last decimal digit (hundredths place)
     const lastDigit = Math.round((decimalPart * 100) % 10);
+    console.log('[Step 4] Last digit (hundredths place):', lastDigit);
+    
+    let result: number;
+    let rule: string;
     
     if (lastDigit === 0) {
       // Already rounded to .00, .10, .20, etc. (like 1.00, 1.10, 1.20)
-      return rounded;
+      result = rounded;
+      rule = 'Keep as is (last digit is 0)';
     } else if (lastDigit >= 1 && lastDigit <= 4) {
       // Round down to 0 (e.g., 1.71 → 1.70, 1.83 → 1.80)
       const tensPlace = Math.floor(decimalPart * 10);
-      return integerPart + tensPlace / 10;
+      result = integerPart + tensPlace / 10;
+      rule = `Round down to 0 (last digit is ${lastDigit})`;
     } else if (lastDigit === 5) {
       // Keep as is (e.g., 1.75 → 1.75)
-      return rounded;
+      result = rounded;
+      rule = 'Keep as is (last digit is 5)';
     } else if (lastDigit >= 6 && lastDigit <= 9) {
       // Round down to 5 (e.g., 1.76 → 1.75, 1.89 → 1.85)
       const tensPlace = Math.floor(decimalPart * 10);
-      return integerPart + tensPlace / 10 + 0.05;
+      result = integerPart + tensPlace / 10 + 0.05;
+      rule = `Round down to 5 (last digit is ${lastDigit})`;
+    } else {
+      result = rounded;
+      rule = 'Fallback (no rule matched)';
     }
     
-    return rounded;
+    console.log('[Step 5] Rule applied:', rule);
+    console.log('[Result] Final rounded value:', result);
+    console.groupEnd();
+    
+    return result;
   }
 
-  // Get Entry Point Range Addition based on midpoint value
-  getEntryPointRangeAddition(midpoint: number): number {
-    if (midpoint >= 1 && midpoint <= 400) {
-      return 0.0040; // 0.40 paise
-    } else if (midpoint >= 401 && midpoint <= 2000) {
-      return 0.0060; // 0.60 paise
-    } else if (midpoint >= 2001 && midpoint <= 3500) {
-      return 1.20; // 1.20 rs
-    } else if (midpoint >= 3501 && midpoint <= 5000) {
-      return 2.40; // 2.40 rs
-    } else if (midpoint >= 5001 && midpoint <= 8000) {
-      return 4.30; // 4.30 rs
+  // Get Entry Point Range Addition based on Future Close Price
+  getEntryPointRangeAddition(futureClosePrice: number): number {
+    console.group('[Stock Tab] Entry Point Range Addition Lookup');
+    console.log('[Step 1] Input Future Close Price:', futureClosePrice);
+    
+    let addition: number;
+    let range: string;
+    
+    if (futureClosePrice >= 1 && futureClosePrice <= 400) {
+      addition = 0.40; // 0.40 paise
+      range = '1 - 400';
+    } else if (futureClosePrice >= 401 && futureClosePrice <= 2000) {
+      addition = 0.60; // 0.60 paise
+      range = '401 - 2000';
+    } else if (futureClosePrice >= 2001 && futureClosePrice <= 3500) {
+      addition = 1.60; // 1.60 rs
+      range = '2001 - 3500';
+    } else if (futureClosePrice >= 3501 && futureClosePrice <= 5500) {
+      addition = 3.40; // 3.40 rs
+      range = '3501 - 5500';
+    } else if (futureClosePrice >= 5501 && futureClosePrice <= 10000) {
+      addition = 5.80; // 5.80 rs
+      range = '5501 - 10000';
+    } else {
+      addition = 0;
+      range = 'No range matched (outside 1-10000)';
     }
-    return 0;
+    
+    console.log('[Step 2] Range matched:', range);
+    console.log('[Result] Addition value:', addition);
+    console.groupEnd();
+    
+    return addition;
   }
 
-  // Get Stop Loss Range Subtraction based on midpoint value
-  getStopLossRangeSubtraction(midpoint: number): number {
-    if (midpoint >= 1 && midpoint <= 400) {
-      return 0.0050; // 0.50 paise
-    } else if (midpoint >= 401 && midpoint <= 2000) {
-      return 2.00; // 2 rs
-    } else if (midpoint >= 2001 && midpoint <= 3500) {
-      return 5.50; // 5.50 rs
-    } else if (midpoint >= 3501 && midpoint <= 5000) {
-      return 6.60; // 6.6 rs
-    } else if (midpoint >= 5001 && midpoint <= 8000) {
-      return 8.70; // 8.70 rs
+  // Get Stop Loss Range Subtraction based on Future Close Price
+  getStopLossRangeSubtraction(futureClosePrice: number): number {
+    console.group('[Stock Tab] Stop Loss Range Subtraction Lookup');
+    console.log('[Step 1] Input Future Close Price:', futureClosePrice);
+    
+    let subtraction: number;
+    let range: string;
+    
+    if (futureClosePrice >= 1 && futureClosePrice <= 400) {
+      subtraction = 1.50; // 1.50 paise
+      range = '1 - 400';
+    } else if (futureClosePrice >= 401 && futureClosePrice <= 2000) {
+      subtraction = 2.00; // 2 rs
+      range = '401 - 2000';
+    } else if (futureClosePrice >= 2001 && futureClosePrice <= 3500) {
+      subtraction = 5.60; // 5.60 rs
+      range = '2001 - 3500';
+    } else if (futureClosePrice >= 3501 && futureClosePrice <= 5500) {
+      subtraction = 7.40; // 7.40 rs
+      range = '3501 - 5500';
+    } else if (futureClosePrice >= 5501 && futureClosePrice <= 10000) {
+      subtraction = 9.90; // 9.90 rs
+      range = '5501 - 10000';
+    } else {
+      subtraction = 0;
+      range = 'No range matched (outside 1-10000)';
     }
-    return 0;
+    
+    console.log('[Step 2] Range matched:', range);
+    console.log('[Result] Subtraction value:', subtraction);
+    console.groupEnd();
+    
+    return subtraction;
   }
 
   // Calculate Stock Entry Point
-  calculateStockEntryPoint(camarillaPP: number, camarillaR1: number): number {
+  calculateStockEntryPoint(camarillaPP: number, camarillaR1: number, futureClosePrice: number): number {
+    console.group('[Stock Tab] Entry Point Calculation');
+    console.log('[Step 1] Input values:', { camarillaPP, camarillaR1, futureClosePrice });
+    
     // Calculate midpoint
     const midpoint = (camarillaPP + camarillaR1) / 2;
+    console.log('[Step 2] Entry Midpoint:', midpoint, `((PP + R1) / 2: (${camarillaPP} + ${camarillaR1}) / 2)`);
     
-    // Round midpoint
-    const rounded = this.roundEntryPoint(midpoint);
+    // Get range addition based on Future Close Price
+    const addition = this.getEntryPointRangeAddition(futureClosePrice);
+    console.log('[Step 3] Range addition (based on Future Close Price):', addition);
     
-    // Get range addition
-    const addition = this.getEntryPointRangeAddition(rounded);
+    // Add midpoint and addition first (before rounding)
+    const sum = midpoint + addition;
+    console.log('[Step 4] Sum (Midpoint + Addition):', sum, `(${midpoint} + ${addition})`);
     
-    // Final entry point
-    return rounded + addition;
+    // Round the final result
+    const entryPoint = this.roundEntryPoint(sum);
+    console.log('[Step 5] Final Entry Point (rounded):', entryPoint);
+    console.groupEnd();
+    
+    return entryPoint;
   }
 
-  // Calculate Stock Stop Loss
-  calculateStockStopLoss(classicPP: number, classicR1: number): number {
+  // Calculate NIFTY Stop Loss (using Classic PP and R1)
+  calculateNiftyStopLoss(classicPP: number, classicR1: number): number {
+    console.group('[NIFTY Tab] Stop Loss Calculation');
+    console.log('[Step 1] Input values:', { classicPP, classicR1 });
+    
     // Calculate midpoint
     const midpoint = (classicPP + classicR1) / 2;
+    console.log('[Step 2] Stop Loss Midpoint:', midpoint, `((PP + R1) / 2: (${classicPP} + ${classicR1}) / 2)`);
     
     // Round midpoint
     const rounded = this.roundStopLoss(midpoint);
+    console.log('[Step 3] Rounded midpoint:', rounded);
     
     // Get range subtraction
     const subtraction = this.getStopLossRangeSubtraction(rounded);
+    console.log('[Step 4] Range subtraction:', subtraction);
     
     // Final stop loss
-    return rounded - subtraction;
+    const stopLoss = rounded - subtraction;
+    console.log('[Step 5] Final Stop Loss:', stopLoss, `(Rounded - Subtraction: ${rounded} - ${subtraction})`);
+    console.groupEnd();
+    
+    return stopLoss;
   }
 
-  // Calculate Stock Targets (same as NIFTY)
-  calculateStockTargets(classicR1: number, classicR2: number) {
-    return this.calculateNiftyTargets(classicR1, classicR2);
+  // Calculate Stock Options Stop Loss (using Classic PP and S1)
+  calculateStockStopLoss(classicPP: number, classicS1: number, futureClosePrice: number): number {
+    console.group('[Stock Tab] Stop Loss Calculation');
+    console.log('[Step 1] Input values:', { classicPP, classicS1, futureClosePrice });
+    
+    // Calculate midpoint
+    const midpoint = (classicPP + classicS1) / 2;
+    console.log('[Step 2] Stop Loss Midpoint:', midpoint, `((PP + S1) / 2: (${classicPP} + ${classicS1}) / 2)`);
+    
+    // Round midpoint
+    const rounded = this.roundStopLoss(midpoint);
+    console.log('[Step 3] Rounded midpoint:', rounded);
+    
+    // Get range subtraction based on Future Close Price
+    const subtraction = this.getStopLossRangeSubtraction(futureClosePrice);
+    console.log('[Step 4] Range subtraction (based on Future Close Price):', subtraction);
+    
+    // Final stop loss
+    const stopLoss = rounded - subtraction;
+    console.log('[Step 5] Final Stop Loss:', stopLoss, `(Rounded - Subtraction: ${rounded} - ${subtraction})`);
+    console.groupEnd();
+    
+    return stopLoss;
   }
 
   calculatePivotPoints() {
-    const open = parseFloat(this.calculatorForm.get('open')?.value) || 0;
-    const high = parseFloat(this.calculatorForm.get('high')?.value) || 0;
-    const low = parseFloat(this.calculatorForm.get('low')?.value) || 0;
-    const last = parseFloat(this.calculatorForm.get('last')?.value) || 0;
+    // Step 1: Parse input values
+    console.group('[Stock Tab] Input Parsing');
+    const rawOpen = this.calculatorForm.get('open')?.value;
+    const rawHigh = this.calculatorForm.get('high')?.value;
+    const rawLow = this.calculatorForm.get('low')?.value;
+    const rawLast = this.calculatorForm.get('last')?.value;
+    const rawFutureClosePrice = this.calculatorForm.get('futureClosePrice')?.value;
+    console.log('[Input] Raw values:', { open: rawOpen, high: rawHigh, low: rawLow, last: rawLast, futureClosePrice: rawFutureClosePrice });
+    
+    const open = parseFloat(rawOpen) || 0;
+    const high = parseFloat(rawHigh) || 0;
+    const low = parseFloat(rawLow) || 0;
+    const last = parseFloat(rawLast) || 0;
+    const futureClosePrice = parseFloat(rawFutureClosePrice) || 0;
+    console.log('[Input] Parsed float values:', { open, high, low, last, futureClosePrice });
+    console.log('[Input] Selected segment:', this.selectedSegment);
+    console.groupEnd();
 
     if (this.selectedSegment === 'nifty') {
       // NIFTY-specific calculations using Camarilla for Entry/Stop Loss and Classic for Targets
@@ -346,45 +697,95 @@ export class FolderPage implements OnInit {
       );
       
       // Calculate Classic pivot points for Targets
+      // IMPORTANT: Switch to Classic method for target calculations
+      // Calculate R1 and R2 using Classic formulas:
+      // R1 = 2 × PP - LOW
+      // R2 = PP + (HIGH - LOW)
       const classic = this.calculateClassicPivotPoints(high, low, last);
       
-      // Calculate Targets
-      const targets = this.calculateNiftyTargets(classic.r1, classic.r2);
-      
+      // Calculate Targets using Classic PP, R1 and R2; then drop/relabel/fill vs entry when needed
+      const targetsRaw = this.calculateNiftyTargets(classic.pp, classic.r1, classic.r2);
+      const targets = this.finalizeTargetsAgainstEntry(entryPoint, classic, targetsRaw, {
+        roundLevel: (n) => this.roundDown(n),
+        step: 16,
+        logLabel: 'NIFTY Tab',
+      });
+
+      console.log('[NIFTY Tab] Final Results:', {
+        entryPoint: entryPoint,
+        stopLoss: stopLoss,
+        targetOne: targets.targetOneRounded,
+        targetTwo: targets.targetTwoRounded,
+        targetThree: targets.targetThreeRounded,
+        targetFour: targets.targetFourRounded,
+        targetFive: targets.targetFiveRounded
+      });
       // Set NIFTY results
       this.pivotResults.entryPoint = entryPoint;
       this.pivotResults.stopLoss = stopLoss;
-      this.pivotResults.targetOne = targets.targetOne;
-      this.pivotResults.targetTwo = targets.targetTwo;
-      this.pivotResults.targetThree = targets.targetThree;
-      this.pivotResults.targetFour = targets.targetFour;
-      this.pivotResults.targetFive = targets.targetFive;
+      this.pivotResults.targetOne = targets.targetOneRounded;
+      this.pivotResults.targetTwo = targets.targetTwoRounded;
+      this.pivotResults.targetThree = targets.targetThreeRounded;
+      this.pivotResults.targetFour = targets.targetFourRounded;
+      this.pivotResults.targetFive = targets.targetFiveRounded;
+
     } else if (this.selectedSegment === 'stock') {
-      // Stock Options: Camarilla for Entry, Classic for Stop Loss and Targets
+      console.group('[Stock Tab] Main Calculation Flow');
+      console.log('[Stock Tab] Starting Stock Options calculations...');
+      
+      // Validate Future Close Price is provided
+      if (!futureClosePrice || futureClosePrice <= 0) {
+        console.error('[Stock Tab] Future Close Price is required for Stock Options calculations');
+        console.groupEnd();
+        return; // Exit early if Future Close Price is not provided
+      }
+      
+      // Stock Options: Camarilla for Entry, Classic for Stop Loss and target ladder (+ finalize vs entry)
       
       // Calculate Camarilla pivot points for Entry Point
       const camarilla = this.calculateCamarillaPivotPoints(high, low, last);
       
-      // Calculate Classic pivot points for Stop Loss and Targets
+      // Calculate Classic pivot points for Stop Loss and targets
       const classic = this.calculateClassicPivotPoints(high, low, last);
       
-      // Calculate Entry Point (Camarilla)
-      const entryPoint = this.calculateStockEntryPoint(camarilla.pp, camarilla.r1);
+      // Calculate Entry Point (Camarilla) - uses Future Close Price for range lookup
+      const entryPoint = this.calculateStockEntryPoint(camarilla.pp, camarilla.r1, futureClosePrice);
       
-      // Calculate Stop Loss (Classic)
-      const stopLoss = this.calculateStockStopLoss(classic.pp, classic.r1);
+      // Calculate Stop Loss (Classic) - uses PP and S1, Future Close Price for range lookup
+      const stopLoss = this.calculateStockStopLoss(classic.pp, classic.s1, futureClosePrice);
       
-      // Calculate Targets (Classic, same as NIFTY)
-      const targets = this.calculateStockTargets(classic.r1, classic.r2);
-      
+      const targetsRaw = this.calculateStockTargetsFromClassic(
+        classic.pp,
+        classic.r1,
+        classic.r2,
+        classic.r3
+      );
+      const targets = this.finalizeTargetsAgainstEntry(entryPoint, classic, targetsRaw, {
+        roundLevel: (n) => this.roundStockTargetToNickel(n),
+        step: 16,
+        logLabel: 'Stock Tab',
+      });
+
       // Set Stock results
       this.pivotResults.entryPoint = entryPoint;
       this.pivotResults.stopLoss = stopLoss;
-      this.pivotResults.targetOne = targets.targetOne;
-      this.pivotResults.targetTwo = targets.targetTwo;
-      this.pivotResults.targetThree = targets.targetThree;
-      this.pivotResults.targetFour = targets.targetFour;
-      this.pivotResults.targetFive = targets.targetFive;
+      this.pivotResults.targetOne = targets.targetOneRounded;
+      this.pivotResults.targetTwo = targets.targetTwoRounded;
+      this.pivotResults.targetThree = targets.targetThreeRounded;
+      this.pivotResults.targetFour = targets.targetFourRounded;
+      this.pivotResults.targetFive = targets.targetFiveRounded;
+      
+      console.log('[Stock Tab] Final Results:', {
+        entryPoint: this.pivotResults.entryPoint,
+        stopLoss: this.pivotResults.stopLoss,
+        targetOne: this.pivotResults.targetOne,
+        targetTwo: this.pivotResults.targetTwo,
+        targetThree: this.pivotResults.targetThree,
+        targetFour: this.pivotResults.targetFour,
+        targetFive: this.pivotResults.targetFive
+      });
+      console.log('[Stock Tab] Calculations completed successfully!');
+      console.groupEnd();
     }
   }
 

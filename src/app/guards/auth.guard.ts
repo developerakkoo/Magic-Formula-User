@@ -59,7 +59,7 @@ export class LoginGuard implements CanActivate {
   canActivate(): boolean {
     // If user is already authenticated and not blocked, redirect to home
     if (this.authService.isAuthenticated() && !this.authService.isBlocked()) {
-      this.router.navigate(['/folder/home']);
+      this.router.navigate(['/folder/Magic Formula']);
       return false;
     }
 

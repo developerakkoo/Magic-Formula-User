@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 export interface Plan {
   _id: string;
   title: string;
+  code?: string;
   description: string[];
   durationInMonths: 1 | 3 | 6 | 12;
   actualPrice: number;
@@ -16,6 +17,7 @@ export interface Plan {
   offerStartAt?: Date | string;
   offerEndAt?: Date | string;
   isActive: boolean;
+  isStarterOffer?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -30,6 +32,8 @@ export interface MySubscriptionResponse {
   message?: string;
   data: {
     planName: string;
+    planCode?: string;
+    isStarterOffer?: boolean;
     expiryDate: Date | string;
     daysLeft: number;
   } | null;

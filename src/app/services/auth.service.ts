@@ -18,6 +18,8 @@ export interface User {
   activePlan?: string;
   planExpiry?: Date | string;
   profilePic?: string;
+  deviceChangeRequested?: boolean;
+  deviceChangeRequestedAt?: Date | string;
 }
 
 export interface LoginRequest {
@@ -190,6 +192,20 @@ export class AuthService {
   }
 
   /**
+   * Update user activity (heartbeat for live user tracking)
+   * Called periodically to track that user is active
+   */
+  updateUserActivity(): Observable<any> {
+    return this.http.post(`${environment.API_URL}/api/users/activity`, {}).pipe(
+      catchError(error => {
+        // Silently fail - don't interrupt user experience
+        console.debug('Activity update failed:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
    * Refresh user profile from backend
    */
   refreshUserProfile(): Observable<User> {
@@ -340,6 +356,14 @@ export class AuthService {
   }
 
   /**
+   * Clear session (token and user) without navigating.
+   * Use when registration or another flow fails after partial auth so the user is not left logged in.
+   */
+  clearSession(): void {
+    this.clearStorage();
+  }
+
+  /**
    * Update current user data (e.g., after profile update)
    */
   updateUser(user: Partial<User>): void {
@@ -394,6 +418,92 @@ export class AuthService {
       email,
       ...paymentData
     }).pipe(
+      catchError(error => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  /**
+   * Send WhatsApp OTP (for registration or login)
+   */
+  sendWhatsAppOtp(whatsapp: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/whatsapp/send-otp`, {
+      whatsapp
+    }).pipe(
+      catchError(error => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  /**
+   * Resend WhatsApp OTP
+   */
+  resendWhatsAppOtp(whatsapp: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/whatsapp/resend-otp`, {
+      whatsapp
+    }).pipe(
+      catchError(error => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  /**
+   * Verify WhatsApp OTP and log in
+   * Uses device ID from Capacitor Device API
+   */
+  async verifyWhatsAppOtp(whatsapp: string, otp: string): Promise<Observable<LoginResponse>> {
+    let deviceId: string;
+    try {
+      const deviceInfo = await Device.getId();
+      deviceId = deviceInfo.identifier;
+      if (!deviceId) {
+        throw new Error('Device ID is not available');
+      }
+    } catch (error) {
+      return throwError(() => ({
+        message: 'Unable to get device ID. Please ensure the app has proper permissions and try again.',
+        status: 0
+      }));
+    }
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/whatsapp/verify-otp`, {
+      whatsapp,
+      otp,
+      deviceId
+    }).pipe(
+      tap(response => {
+        if (response.isBlocked || response.isDeviceMismatch) {
+          return;
+        }
+        this.setToken(response.accessToken);
+        this.setUser(response.user);
+        this.currentUserSubject.next(response.user);
+      }),
+      catchError(error => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  /**
+   * Complete registration after OTP verification (fullName, email, password)
+   * Requires auth; for users created via send-otp who only have whatsapp set
+   */
+  completeRegistrationAfterOtp(fullName: string, email: string, password: string): Observable<{ success: boolean; message?: string; data?: User }> {
+    return this.http.post<{ success: boolean; message?: string; data?: User }>(`${this.apiUrl}/complete-registration`, {
+      fullName,
+      email,
+      password
+    }).pipe(
+      tap(response => {
+        if (response.data) {
+          this.setUser(response.data);
+          this.currentUserSubject.next(response.data);
+        }
+      }),
       catchError(error => {
         return throwError(() => this.handleError(error));
       })

@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.moneycraft.magic;
 
 import com.getcapacitor.BridgeActivity;
 

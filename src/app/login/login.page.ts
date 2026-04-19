@@ -109,7 +109,7 @@ export class LoginPage implements OnInit {
           await this.showToast('Login successful!', 'success');
 
           // Navigate to home screen
-          this.router.navigate(['/folder/home']);
+          this.router.navigate(['/folder/Magic Formula']);
         }
       } catch (error: any) {
         console.error('Login error:', error);

@@ -5,7 +5,7 @@ import { AuthGuard, LoginGuard } from './guards/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'folder/home',
+    redirectTo: 'folder/Magic Formula by Prashant Shinde',
     pathMatch: 'full'
   },
   {
@@ -44,7 +44,7 @@ const routes: Routes = [
   },
   {
     path: 'support',
-    loadChildren: () => import('./folder/folder.module').then( m => m.FolderPageModule),
+    loadChildren: () => import('./support/support.module').then( m => m.SupportPageModule),
     canActivate: [AuthGuard]
   },
   {
@@ -54,7 +54,7 @@ const routes: Routes = [
   },
   {
     path: 'policies',
-    loadChildren: () => import('./folder/folder.module').then( m => m.FolderPageModule),
+    loadChildren: () => import('./policies/policies.module').then( m => m.PoliciesPageModule),
     canActivate: [AuthGuard]
   },
   {

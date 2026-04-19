@@ -1,5 +1,15 @@
 @use "../theme/app-theme.scss";
 
+// Narrower drawer only when split-pane is expanded (desktop). Below Ionic's lg breakpoint
+// the pane collapses and the menu is overlay/toggle — keep Ionic defaults there (~304px).
+@media (min-width: 992px) {
+  ion-split-pane.split-pane-visible {
+    --side-width: 280px;
+    --side-min-width: 250px;
+    --side-max-width: 290px;
+  }
+}
+
 ion-menu ion-content {
   --background: var(--ion-color-neutral-black);
 }
@@ -28,7 +38,8 @@ ion-menu.ios ion-content {
   background: rgba(15, 15, 15, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 8px;
+  margin-bottom: 0;
+  flex-shrink: 0;
 
   .menu-title {
     font-size: 24px;
@@ -54,10 +65,10 @@ ion-menu.ios ion-list {
 }
 
 #menu-list {
-  padding: 0 12px;
+  padding: 8px 12px 0;
   flex: 1;
   overflow-y: auto;
-  margin-top: 100px;
+  margin-top: 0;
   --background: transparent;
   background: transparent;
 }
@@ -87,12 +98,20 @@ ion-menu.ios ion-list {
 
   &.selected {
     --background: rgba(108, 216, 78, 0.15);
-    border-left: 3px solid var(--ion-color-primary);
-    padding-left: 13px; // Adjust for border
 
     .menu-arrow {
       color: var(--ion-color-primary);
       opacity: 1;
+    }
+
+    .menu-icon {
+      color: var(--ion-color-primary);
+      transform: scale(1.1);
+    }
+
+    .menu-label {
+      color: var(--ion-color-primary);
+      font-weight: 600;
     }
   }
 
@@ -121,18 +140,6 @@ ion-menu.ios ion-list {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin-left: 8px;
     flex-shrink: 0;
-  }
-
-  &.selected {
-    .menu-icon {
-      color: var(--ion-color-primary);
-      transform: scale(1.1);
-    }
-
-    .menu-label {
-      color: var(--ion-color-primary);
-      font-weight: 600;
-    }
   }
 
   &:active {
@@ -209,7 +216,6 @@ ion-menu.ios ion-list {
   font-weight: 600;
   font-size: 15px;
   margin: 0;
-  border: 1px solid rgba(255, 80, 80, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {

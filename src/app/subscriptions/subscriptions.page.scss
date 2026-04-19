@@ -73,6 +73,15 @@
     .active-details {
       flex: 1;
 
+      .active-intro-tag {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1ecac1;
+        margin: 0 0 6px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
       .active-plan-name {
         font-size: 20px;
         font-weight: 700;
@@ -244,6 +253,33 @@
 
     .popular-badge {
       display: flex;
+    }
+  }
+
+  &.starter-offer {
+    border-color: rgba(30, 202, 193, 0.4);
+    box-shadow:
+      0 8px 28px rgba(30, 202, 193, 0.18),
+      0 0 0 1px rgba(30, 202, 193, 0.12) inset;
+  }
+
+  .starter-intro-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #0f1115;
+    background: linear-gradient(90deg, #6cd84e 0%, #1ecac1 100%);
+
+    ion-icon {
+      font-size: 14px;
     }
   }
 

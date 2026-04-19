@@ -21,6 +21,7 @@
         </div>
         <div class="active-details">
           <h2 class="active-plan-name">{{ activeSubscription.planName }}</h2>
+          <p class="active-intro-tag" *ngIf="activeSubscription.isStarterOffer">Introductory access</p>
           <p class="active-dates">
             <ion-icon name="calendar-outline" class="date-icon"></ion-icon>
             Valid until {{ formatDate(activeSubscription.endDate) }}
@@ -54,13 +55,19 @@
 
       <div class="plans-grid" *ngIf="!isLoading && plans.length > 0">
         <div 
-          *ngFor="let plan of plans; let i = index" 
+          *ngFor="let plan of plans; let i = index; trackBy: trackByPlanId" 
           class="plan-card"
           [class.popular]="plan.popular"
+          [class.starter-offer]="plan.isStarterOffer"
           [class.premium]="plan.id === 'year'"
           [@fadeInUp]
           [style.animation-delay]="(i * 0.1) + 's'"
         >
+          <div class="starter-intro-badge" *ngIf="plan.isStarterOffer">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>One-time for new users</span>
+          </div>
+
           <!-- Offer Badge -->
           <div class="offer-badge" *ngIf="plan.showOfferBadge && isOfferActive(plan)">
             <ion-icon name="flash-outline" class="flash-icon"></ion-icon>
@@ -97,7 +104,7 @@
               <span class="currency">₹</span>
               <span class="price">{{ plan.price }}</span>
             </div>
-            <div class="price-details" *ngIf="plan.originalPrice && plan.originalPrice > plan.price">
+            <div class="price-details" *ngIf="plan.hasDiscount">
               <span class="original-price">₹{{ plan.originalPrice }}</span>
               <span class="savings">Save ₹{{ calculateSavings(plan) }}</span>
             </div>

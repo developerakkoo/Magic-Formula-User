@@ -1,11 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { Router, NavigationEnd } from '@angular/router';
+import { Platform, AlertController, MenuController } from '@ionic/angular';
+import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { PrivacyScreen } from '@capacitor/privacy-screen';
 import { AuthService } from './services/auth.service';
 import { NotificationService } from './services/notification.service';
 import { SubscriptionService } from './services/subscription.service';
 import { Subject, interval, from, of } from 'rxjs';
-import { takeUntil, switchMap, catchError } from 'rxjs/operators';
+import { takeUntil, switchMap, catchError, filter } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -16,7 +19,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class AppComponent implements OnInit, OnDestroy {
   public appPages = [
-    { title: 'Magic Formula', url: '/folder/Magic Formula', icon: 'calculator-outline' },
+    { title: 'Magic Formula', url: '/folder/Magic Formula By Prashant Shinde', icon: 'calculator-outline' },
     { title: 'View Profile', url: '/profile', icon: 'person-outline' },
     { title: 'My Subscriptions', url: '/subscriptions', icon: 'card-outline' },
     { title: 'Notifications', url: '/notifications', icon: 'notifications-outline' },
@@ -30,16 +33,93 @@ export class AppComponent implements OnInit, OnDestroy {
   showExpiryWarning = false;
   private destroy$ = new Subject<void>();
 
-  
+  private readonly publicPreLoginPaths = ['/login', '/register', '/forgot-password'];
+
   constructor(
+    private platform: Platform,
+    private menuController: MenuController,
     private router: Router,
     private authService: AuthService,
     private alertController: AlertController,
     private notificationService: NotificationService,
     private subscriptionService: SubscriptionService
-  ) {}
+  ) {
+    this.initializeApp();
+  }
+
+  initializeApp() {
+    this.platform.ready().then(() => {
+      this.platform.backButton.subscribeWithPriority(101, async () => {
+        const path = window.location.pathname || '';
+        if (path === '/' || path === '/folder/home' || path.startsWith('/folder/')) {
+          this.presentExitConfirm();
+        } else {
+          window.history.back();
+        }
+      });
+    });
+  }
+
+  async presentExitConfirm() {
+    const alert = await this.alertController.create({
+      header: 'Confirm Exit',
+      message: 'Do you want to exit the app?',
+      backdropDismiss: false,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            // Dismiss the alert and do nothing
+          },
+        },
+        {
+          text: 'Exit',
+          handler: () => {
+            App.exitApp();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  private pathWithoutQuery(url: string): string {
+    return url.split('?')[0].split('#')[0];
+  }
+
+  private isPublicPreLoginPath(path: string): boolean {
+    const p = this.pathWithoutQuery(path);
+    return this.publicPreLoginPaths.some(
+      (prefix) => p === prefix || p.startsWith(prefix + '/')
+    );
+  }
+
+  private async syncMenuWithRoute(routerUrl: string): Promise<void> {
+    const path = this.pathWithoutQuery(routerUrl);
+    if (this.isPublicPreLoginPath(path)) {
+      await this.menuController.enable(false);
+      await this.menuController.close();
+      return;
+    }
+    if (this.authService.isAuthenticated()) {
+      await this.menuController.enable(true);
+    } else {
+      await this.menuController.enable(false);
+      await this.menuController.close();
+    }
+  }
 
   async ngOnInit() {
+    // Enable privacy screen on native platforms (no screenshots, no screen recordings)
+    if (Capacitor.isNativePlatform()) {
+      PrivacyScreen.enable({
+        android: { dimBackground: true, preventScreenshots: true, privacyModeOnActivityHidden: 'splash' },
+        ios: { blurEffect: 'dark' }
+      }).catch(err => console.warn('PrivacyScreen enable failed:', err));
+    }
+
     // Check block status on app initialization if user is authenticated
     if (this.authService.isAuthenticated()) {
       await this.authService.checkBlockStatus();
@@ -47,7 +127,19 @@ export class AppComponent implements OnInit, OnDestroy {
       this.loadSubscriptionExpiry();
       this.startNotificationPolling();
       this.startBlockStatusPolling();
+      this.startActivityHeartbeat();
     }
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((event) => {
+        void this.syncMenuWithRoute(event.urlAfterRedirects);
+      });
+
+    void this.syncMenuWithRoute(this.router.url);
   }
 
   ngOnDestroy() {
@@ -157,6 +249,36 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
+  startActivityHeartbeat() {
+    // Send activity heartbeat every 2 minutes (120 seconds) to track live users
+    // This ensures users are marked as "live" if they're actively using the app
+    interval(120000) // 2 minutes
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(() => {
+          if (this.authService.isAuthenticated()) {
+            return this.authService.updateUserActivity().pipe(
+              catchError(error => {
+                // Silently fail - don't interrupt user experience
+                console.debug('Activity heartbeat failed:', error);
+                return of(null);
+              })
+            );
+          }
+          return of(null);
+        })
+      )
+      .subscribe({
+        next: () => {
+          // Activity updated successfully
+          console.debug('Activity heartbeat sent');
+        },
+        error: (error) => {
+          console.debug('Error in activity heartbeat:', error);
+        }
+      });
+  }
+
   async onLogout() {
     const alert = await this.alertController.create({
       header: 'Confirm Logout',
@@ -171,6 +293,7 @@ export class AppComponent implements OnInit, OnDestroy {
           text: 'Logout',
           cssClass: 'alert-button-confirm',
           handler: () => {
+            this.menuController.close();
             this.authService.logout();
           }
         }

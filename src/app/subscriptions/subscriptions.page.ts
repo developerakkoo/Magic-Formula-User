@@ -12,23 +12,27 @@ declare var Razorpay: any;
 interface SubscriptionPlan {
   id: string;
   _id?: string;
+  code?: string;
   title: string;
   description: string;
   icon: string;
   duration: string;
   price: number;
   originalPrice?: number;
+  hasDiscount?: boolean;
   features: string[];
   popular?: boolean;
   showOfferBadge?: boolean;
   offerText?: string;
   offerStartAt?: Date | string;
   offerEndAt?: Date | string;
+  isStarterOffer?: boolean;
 }
 
 interface ActiveSubscription {
   planId: string;
   planName: string;
+  isStarterOffer?: boolean;
   startDate: string;
   endDate: string;
   status: 'active' | 'expired' | 'cancelled';
@@ -76,7 +80,7 @@ export class SubscriptionsPage implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.loadSubscriptionData();
+    void this.loadSubscriptionData();
     this.startCountdownTimer();
   }
 
@@ -86,39 +90,46 @@ export class SubscriptionsPage implements OnInit, OnDestroy {
     }
   }
 
-  loadSubscriptionData() {
+  async loadSubscriptionData(): Promise<void> {
     this.isLoading = true;
-    
-    // Load active plans
-    this.subscriptionService.getActivePlans().subscribe({
-      next: (plans) => {
-        this.plans = this.mapPlansToUI(plans);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.isLoading = false;
-        const errorMessage = error?.message || 'Failed to load subscription plans. Please try again.';
-        this.presentToast(errorMessage, 'danger');
-      }
-    });
+    this.activeSubscription = null;
 
-    // Load user's active subscription
-    this.subscriptionService.getMySubscription().subscribe({
-      next: (subscription) => {
-        if (subscription) {
-          this.activeSubscription = {
-            planId: subscription.planName,
-            planName: subscription.planName,
-            startDate: '',
-            endDate: subscription.expiryDate.toString(),
-            status: 'active'
-          };
-        }
-      },
-      error: (error) => {
-        // Silent fail for subscription check - user might not have one
-        console.log('No active subscription');
+    try {
+      const [plans, subscription] = await Promise.all([
+        firstValueFrom(this.subscriptionService.getActivePlans()),
+        firstValueFrom(this.subscriptionService.getMySubscription()).catch(() => null)
+      ]);
+
+      const mapped = this.mapPlansToUI(plans);
+      this.plans = this.sortStarterPlanFirst(mapped);
+
+      if (subscription) {
+        this.activeSubscription = {
+          planId: subscription.planName,
+          planName: subscription.planName,
+          isStarterOffer: subscription.isStarterOffer,
+          startDate: '',
+          endDate: subscription.expiryDate.toString(),
+          status: 'active'
+        };
       }
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load subscription plans. Please try again.';
+      this.presentToast(errorMessage, 'danger');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  trackByPlanId(_index: number, plan: SubscriptionPlan): string {
+    return plan._id || plan.id;
+  }
+
+  private sortStarterPlanFirst(plans: SubscriptionPlan[]): SubscriptionPlan[] {
+    return [...plans].sort((a, b) => {
+      const aS = a.isStarterOffer ? 1 : 0;
+      const bS = b.isStarterOffer ? 1 : 0;
+      return bS - aS;
     });
   }
 
@@ -137,22 +148,30 @@ export class SubscriptionsPage implements OnInit, OnDestroy {
       12: '1 Year'
     };
 
-    return backendPlans.map(plan => ({
-      id: plan.durationInMonths.toString(),
-      _id: plan._id,
-      title: plan.title,
-      description: plan.description?.[0] || '',
-      icon: iconMap[plan.durationInMonths] || 'calendar-outline',
-      duration: durationMap[plan.durationInMonths] || `${plan.durationInMonths} Months`,
-      price: plan.discountedPrice,
-      originalPrice: plan.actualPrice,
-      features: plan.description || [],
-      popular: false,
-      showOfferBadge: plan.showOfferBadge,
-      offerText: plan.offerText,
-      offerStartAt: plan.offerStartAt,
-      offerEndAt: plan.offerEndAt
-    }));
+    return backendPlans.map(plan => {
+      const actual = Number(plan.actualPrice);
+      const discounted = Number(plan.discountedPrice);
+      const hasDiscount = Number.isFinite(actual) && Number.isFinite(discounted) && discounted < actual;
+      return {
+        id: plan.durationInMonths.toString(),
+        _id: plan._id,
+        code: plan.code,
+        title: plan.title,
+        description: plan.description?.[0] || '',
+        icon: iconMap[plan.durationInMonths] || 'calendar-outline',
+        duration: durationMap[plan.durationInMonths] || `${plan.durationInMonths} Months`,
+        price: plan.discountedPrice,
+        originalPrice: plan.actualPrice,
+        hasDiscount,
+        features: plan.description || [],
+        popular: false,
+        showOfferBadge: plan.showOfferBadge,
+        offerText: plan.offerText,
+        offerStartAt: plan.offerStartAt,
+        offerEndAt: plan.offerEndAt,
+        isStarterOffer: plan.isStarterOffer === true || plan.code === 'STARTER_1RS'
+      };
+    });
   }
 
   isOfferActive(plan: SubscriptionPlan): boolean {
@@ -345,7 +364,7 @@ export class SubscriptionsPage implements OnInit, OnDestroy {
   }
 
   calculateSavings(plan: SubscriptionPlan): number {
-    if (!plan.originalPrice) return 0;
-    return plan.originalPrice - plan.price;
+    if (!plan.hasDiscount || plan.originalPrice == null) return 0;
+    return Number(plan.originalPrice) - Number(plan.price);
   }
 }

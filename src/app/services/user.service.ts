@@ -81,6 +81,18 @@ export class UserService {
   }
 
   /**
+   * Request device change
+   * Creates a device change request - user will be logged out until admin approves
+   */
+  requestDeviceChange(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/device-change-request`, {}).pipe(
+      catchError(error => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  /**
    * Handle HTTP errors and return user-friendly messages
    */
   private handleError(error: any): any {

@@ -1,0 +1,376 @@
+@use "../../theme/app-theme.scss";
+
+.support-container {
+  min-height: 100vh;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+// Header Section
+.support-header {
+  margin-bottom: 32px;
+
+  .header-content {
+    .header-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--ion-color-neutral-white);
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, var(--ion-color-primary) 0%, #BAFFA6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 16px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0;
+    }
+  }
+}
+
+// Main Contact Card
+.contact-main-card {
+  background: rgba(15, 15, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  margin-bottom: 24px;
+  text-align: center;
+
+  .contact-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(108, 216, 78, 0.2) 0%, rgba(30, 202, 193, 0.2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(108, 216, 78, 0.3);
+    box-shadow: 0 4px 16px rgba(108, 216, 78, 0.2);
+
+    .main-icon {
+      font-size: 40px;
+      color: var(--ion-color-primary);
+      filter: drop-shadow(0 0 10px rgba(108, 216, 78, 0.5));
+    }
+  }
+
+  .contact-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ion-color-neutral-white);
+    margin: 0 0 12px 0;
+  }
+
+  .contact-description {
+    font-size: 16px;
+    color: var(--ion-color-neutral-gray-light);
+    margin: 0 0 32px 0;
+    line-height: 1.6;
+  }
+}
+
+// Contact Info Section
+.contact-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+// Contact Card
+.contact-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(108, 216, 78, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(108, 216, 78, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  .contact-card-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(108, 216, 78, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(108, 216, 78, 0.2);
+
+    .contact-card-icon {
+      font-size: 24px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  .contact-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+
+    .contact-label {
+      font-size: 12px;
+      color: var(--ion-color-neutral-gray-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .contact-value {
+      font-size: 16px;
+      color: var(--ion-color-neutral-white);
+      font-weight: 500;
+      word-break: break-all;
+    }
+  }
+
+  .contact-card-arrow {
+    font-size: 20px;
+    color: var(--ion-color-neutral-gray-light);
+    flex-shrink: 0;
+  }
+}
+
+// Action Buttons
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .action-button {
+    --border-radius: 16px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    height: 52px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.email-button {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-neutral-black);
+      box-shadow: 
+        0 4px 16px rgba(108, 216, 78, 0.3),
+        0 0 0 1px rgba(108, 216, 78, 0.1) inset;
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    &.phone-button {
+      --background: transparent;
+      --color: var(--ion-color-primary);
+      --border-width: 2px;
+      --border-color: var(--ion-color-primary);
+      border: 2px solid var(--ion-color-primary);
+
+      &:active {
+        transform: scale(0.98);
+        --background: rgba(108, 216, 78, 0.1);
+      }
+    }
+
+    ion-icon {
+      font-size: 18px;
+      margin-right: 8px;
+    }
+  }
+}
+
+// Help Section
+.help-section {
+  margin-top: 24px;
+
+  .help-card {
+    background: rgba(15, 15, 15, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+
+    .help-icon {
+      font-size: 48px;
+      color: var(--ion-color-primary);
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 10px rgba(108, 216, 78, 0.3));
+    }
+
+    .help-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ion-color-neutral-white);
+      margin: 0 0 12px 0;
+    }
+
+    .help-text {
+      font-size: 14px;
+      color: var(--ion-color-neutral-gray-light);
+      margin: 0 0 20px 0;
+      line-height: 1.6;
+    }
+
+    .help-links {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      .help-link-button {
+        --border-color: rgba(255, 255, 255, 0.2);
+        --color: var(--ion-color-neutral-white);
+        --border-radius: 12px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+        height: 40px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+
+        &:hover {
+          --border-color: var(--ion-color-primary);
+          --color: var(--ion-color-primary);
+          --background: rgba(108, 216, 78, 0.1);
+        }
+
+        ion-icon {
+          font-size: 16px;
+          margin-right: 6px;
+        }
+      }
+    }
+  }
+}
+
+// Header Styling
+ion-header {
+  ion-toolbar {
+    --background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    --color: var(--ion-color-neutral-white);
+    --border-width: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  ion-menu-button {
+    --color: var(--ion-color-neutral-white);
+  }
+
+  ion-title {
+    color: var(--ion-color-neutral-white);
+    font-weight: 600;
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .support-container {
+    padding: 16px;
+  }
+
+  .support-header {
+    margin-bottom: 24px;
+
+    .header-content .header-title {
+      font-size: 28px;
+    }
+  }
+
+  .contact-main-card {
+    padding: 32px 24px;
+
+    .contact-icon-wrapper {
+      width: 64px;
+      height: 64px;
+
+      .main-icon {
+        font-size: 32px;
+      }
+    }
+
+    .contact-title {
+      font-size: 20px;
+    }
+
+    .contact-description {
+      font-size: 14px;
+    }
+  }
+
+  .contact-card {
+    padding: 16px;
+
+    .contact-card-icon-wrapper {
+      width: 40px;
+      height: 40px;
+
+      .contact-card-icon {
+        font-size: 20px;
+      }
+    }
+
+    .contact-card-content {
+      .contact-value {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .action-buttons .action-button {
+    height: 48px;
+    font-size: 14px;
+  }
+
+  .help-section .help-card {
+    padding: 20px;
+
+    .help-icon {
+      font-size: 40px;
+    }
+
+    .help-title {
+      font-size: 16px;
+    }
+
+    .help-text {
+      font-size: 13px;
+    }
+
+    .help-links {
+      flex-direction: column;
+
+      .help-link-button {
+        width: 100%;
+      }
+    }
+  }
+}
+

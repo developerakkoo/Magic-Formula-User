@@ -6,7 +6,8 @@ export const environment = {
   production: false,
   // API_URL: 'http://localhost:5000',
   API_URL: 'https://api.moneycrafttrader.com',
-  RAZORPAY_KEY_ID: 'rzp_test_Rp3ejYlVfY449V' // This should be fetched from backend settings in production
+  /** Test mode for local/dev; production builds use environment.prod.ts (live key id). */
+  RAZORPAY_KEY_ID: 'rzp_test_Rp3ejYlVfY449V'
 };
 
 /*

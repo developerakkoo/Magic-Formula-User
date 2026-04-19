@@ -47,18 +47,7 @@
           <div class="info-value">{{ userProfile.email || 'Not set' }}</div>
         </div>
 
-        <!-- Mobile Number -->
-        <div class="info-item" [@fadeInUp]>
-          <div class="info-label">
-            <ion-icon name="call-outline" class="info-icon"></ion-icon>
-            <span>Mobile Number</span>
-          </div>
-          <div class="info-value">{{ userProfile.mobile || 'Not set' }}</div>
-          <div class="info-hint" *ngIf="userProfile.mobile">
-            <ion-icon name="information-circle-outline" class="hint-icon"></ion-icon>
-            <span>WhatsApp number needed for important notifications</span>
-          </div>
-        </div>
+    
 
         <!-- WhatsApp -->
         <div class="info-item" [@fadeInUp] *ngIf="userProfile.whatsapp">
@@ -67,6 +56,21 @@
             <span>WhatsApp</span>
           </div>
           <div class="info-value">{{ userProfile.whatsapp }}</div>
+        </div>
+
+        <!-- Device Change Request Status -->
+        <div class="info-item" [@fadeInUp] *ngIf="userProfile.deviceChangeRequested" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 12px; margin-top: 12px;">
+          <div class="info-label">
+            <ion-icon name="time-outline" class="info-icon" style="color: #ffc107;"></ion-icon>
+            <span>Device Change Request</span>
+          </div>
+          <div class="info-value" style="color: #ffc107; font-weight: 600;">
+            Pending admin approval
+          </div>
+          <div class="info-hint" *ngIf="userProfile.deviceChangeRequestedAt" style="margin-top: 4px;">
+            <ion-icon name="calendar-outline" class="hint-icon"></ion-icon>
+            <span>Requested: {{ userProfile.deviceChangeRequestedAt | date:'short' }}</span>
+          </div>
         </div>
       </div>
 
@@ -86,10 +90,12 @@
           expand="block"
           class="device-change-button"
           (click)="requestDeviceChange()"
+          [disabled]="userProfile?.deviceChangeRequested"
           [@fadeInUp]
         >
           <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
-          Request Device Change
+          <span *ngIf="!userProfile?.deviceChangeRequested">Request Device Change</span>
+          <span *ngIf="userProfile?.deviceChangeRequested">Request Pending</span>
         </ion-button>
       </div>
     </div>

@@ -157,12 +157,12 @@
           <ion-button
             expand="block"
             class="register-button"
-            [disabled]="isLoading || !registerForm.valid"
+            [disabled]="isLoading || isSendingOtp || !registerForm.valid"
             (click)="handleRegister()"
             [@fadeInUp]
           >
-            <ion-spinner *ngIf="isLoading" name="crescent" class="button-spinner"></ion-spinner>
-            <span *ngIf="!isLoading" class="button-text">Create Account</span>
+            <ion-spinner *ngIf="isLoading || isSendingOtp" name="crescent" class="button-spinner"></ion-spinner>
+            <span *ngIf="!isLoading && !isSendingOtp" class="button-text">Create Account</span>
           </ion-button>
 
           <!-- Divider -->
@@ -194,4 +194,74 @@
       </form>
     </div>
   </div>
+
+  <!-- OTP Verification Modal -->
+  <ion-modal
+    [isOpen]="showOtpModal"
+    [initialBreakpoint]="0.6"
+    [breakpoints]="[0.6, 1]"
+    (didDismiss)="closeOtpModal()"
+    class="otp-modal"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Enter OTP</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeOtpModal()" fill="clear">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <p class="otp-subtitle">Sent to {{ maskedWhatsapp }}</p>
+
+        <div class="otp-inputs-row" aria-label="Verification code">
+          <ng-container *ngFor="let _ of [0,1,2,3,4,5]; let i = index">
+            <ion-input
+              #otpInput
+              class="otp-input-box"
+              [value]="otpDigits[i]"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="1"
+              (ionInput)="onOtpInput(i, $event)"
+              (keydown)="onOtpKeydown(i, $event)"
+              (paste)="onOtpPaste($event)"
+              [attr.aria-label]="'OTP digit ' + (i + 1)"
+            ></ion-input>
+          </ng-container>
+        </div>
+
+        <div class="otp-expiry" *ngIf="otpExpirySeconds > 0">
+          OTP expires in {{ otpExpirySeconds / 60 | number:'1.0-0' }}:{{ (otpExpirySeconds % 60) | number:'2.0-0' }}
+        </div>
+        <div class="otp-expiry expired" *ngIf="otpExpirySeconds <= 0">
+          OTP expired
+        </div>
+
+        <ion-button
+          fill="clear"
+          size="small"
+          [disabled]="resendCooldownSeconds > 0"
+          (click)="resendOtp()"
+          class="resend-button"
+        >
+          <span *ngIf="resendCooldownSeconds > 0">Resend in {{ resendCooldownSeconds }}s</span>
+          <span *ngIf="resendCooldownSeconds === 0">Resend OTP</span>
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          class="verify-button"
+          [disabled]="getOtpValue().length !== 6 || otpExpirySeconds <= 0 || isVerifyingOtp"
+          (click)="verifyOtp()"
+        >
+          <ion-spinner *ngIf="isVerifyingOtp" name="crescent"></ion-spinner>
+          <span *ngIf="!isVerifyingOtp">Verify</span>
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
