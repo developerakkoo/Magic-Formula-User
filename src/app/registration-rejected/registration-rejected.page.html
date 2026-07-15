@@ -1,0 +1,20 @@
+<ion-content [fullscreen]="true" class="status-content">
+  <div class="status-container">
+    <div class="status-icon-wrapper rejected">
+      <ion-icon name="close-circle-outline"></ion-icon>
+    </div>
+    <div class="status-card">
+      <h1>Registration Not Approved</h1>
+      <p>
+        Your registration was not approved. Check your email for details.
+        You can submit a new registration request at any time.
+      </p>
+      <ion-button expand="block" fill="solid" (click)="registerAgain()">
+        Register Again
+      </ion-button>
+      <ion-button expand="block" fill="outline" class="ion-margin-top" (click)="goToLogin()">
+        Back to Login
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

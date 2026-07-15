@@ -22,6 +22,18 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface PasswordResetOtpResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResetPasswordWithOtpRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -93,6 +105,43 @@ export class UserService {
   }
 
   /**
+   * Request password reset OTP via email
+   */
+  requestPasswordResetOtp(email: string): Observable<PasswordResetOtpResponse> {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    return this.http
+      .post<PasswordResetOtpResponse>(`${this.apiUrl}/forgot-password/request-otp`, {
+        email: normalizedEmail
+      })
+      .pipe(
+        catchError(error => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  /**
+   * Reset password using email OTP
+   */
+  resetPasswordWithOtp(
+    payload: ResetPasswordWithOtpRequest
+  ): Observable<PasswordResetOtpResponse> {
+    return this.http
+      .post<PasswordResetOtpResponse>(`${this.apiUrl}/forgot-password/reset`, {
+        email: String(payload.email || '').trim().toLowerCase(),
+        otp: String(payload.otp || '').trim(),
+        newPassword: payload.newPassword,
+        confirmPassword: payload.confirmPassword
+      })
+      .pipe(
+        catchError(error => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  /**
    * Handle HTTP errors and return user-friendly messages
    */
   private handleError(error: any): any {
@@ -109,7 +158,17 @@ export class UserService {
     }
     
     if (error.status === 401) {
-      return { ...error, message: 'Authentication failed. Please login again.' };
+      return {
+        ...error,
+        message: error.error?.message || 'Authentication failed. Please login again.'
+      };
+    }
+
+    if (error.status === 429) {
+      return {
+        ...error,
+        message: error.error?.message || 'Please wait before requesting another OTP.'
+      };
     }
     
     if (error.status === 403) {

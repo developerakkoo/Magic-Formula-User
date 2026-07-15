@@ -74,19 +74,20 @@ export class LoginPage implements OnInit {
     if (this.loginForm.valid) {
       this.isLoading = true;
       
-      const email = this.loginForm.get('email')?.value;
-      const password = this.loginForm.get('password')?.value;
+      const email = String(this.loginForm.get('email')?.value ?? '').trim();
+      const password = String(this.loginForm.get('password')?.value ?? '').trim();
 
       try {
-        // Debug: Fetch device ID and show toast
-        try {
-          const deviceInfo = await Device.getId();
-          const deviceId = deviceInfo.identifier;
-          if (deviceId) {
-            await this.showToast(`Debug: Device ID: ${deviceId}`, 'warning');
+        if (Capacitor.isNativePlatform()) {
+          try {
+            const deviceInfo = await Device.getId();
+            const deviceId = deviceInfo.identifier;
+            if (deviceId) {
+              await this.showToast(`Debug: Device ID: ${deviceId}`, 'warning');
+            }
+          } catch (deviceError) {
+            console.error('Error fetching device ID for debug:', deviceError);
           }
-        } catch (deviceError) {
-          console.error('Error fetching device ID for debug:', deviceError);
         }
 
         const loginObservable = await this.authService.login(email, password);
@@ -95,7 +96,9 @@ export class LoginPage implements OnInit {
         if (response) {
           // Check if user is blocked
           if (response.isBlocked) {
-            this.router.navigate(['/blocked']);
+            this.router.navigate(['/blocked'], {
+              state: { email: this.loginForm.get('email')?.value }
+            });
             return;
           }
           
@@ -126,7 +129,21 @@ export class LoginPage implements OnInit {
         
         // Handle blocked user (admin blocking)
         if (error.isBlocked && !error.isDeviceMismatch) {
-          this.router.navigate(['/blocked']);
+          this.router.navigate(['/blocked'], {
+            state: { email: this.loginForm.get('email')?.value }
+          });
+          return;
+        }
+
+        if (error.isPendingApproval) {
+          this.authService.clearSession();
+          this.router.navigate(['/pending-approval']);
+          return;
+        }
+
+        if (error.isRejected) {
+          this.authService.clearSession();
+          this.router.navigate(['/registration-rejected']);
           return;
         }
 
@@ -214,32 +231,33 @@ export class LoginPage implements OnInit {
           text: 'Continue',
           cssClass: 'alert-button-confirm',
           handler: async () => {
-            // Get device ID and email
             const email = this.loginForm.get('email')?.value;
+            if (!Capacitor.isNativePlatform()) {
+              this.router.navigate(['/blocked'], {
+                state: { isDeviceMismatch: true, email }
+              });
+              return;
+            }
             let deviceId: string;
             try {
               const deviceInfo = await Device.getId();
               deviceId = deviceInfo.identifier;
             } catch (error) {
               console.error('Error getting device ID:', error);
-              // Still navigate to blocked page
               this.router.navigate(['/blocked'], {
                 state: { isDeviceMismatch: true, email }
               });
               return;
             }
-            
-            // Block user in backend
+
             try {
               await firstValueFrom(
                 this.authService.blockUserForDeviceMismatch(email, deviceId)
               );
             } catch (error) {
               console.error('Error blocking user:', error);
-              // Still navigate to blocked page even if blocking fails
             }
-            
-            // Navigate to blocked page
+
             this.router.navigate(['/blocked'], {
               state: { isDeviceMismatch: true, email }
             });

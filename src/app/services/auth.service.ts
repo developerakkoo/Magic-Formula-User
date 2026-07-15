@@ -4,7 +4,6 @@ import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
-import { Device } from '@capacitor/device';
 import { environment } from '../../environments/environment';
 
 export interface User {
@@ -15,6 +14,7 @@ export interface User {
   whatsapp?: string;
   firebaseToken?: string;
   isBlocked: boolean;
+  registrationStatus?: 'pending' | 'approved' | 'rejected';
   activePlan?: string;
   planExpiry?: Date | string;
   profilePic?: string;
@@ -69,32 +69,17 @@ export class AuthService {
     this.loadUserFromStorage();
   }
 
+  // Device ID verification disabled — do not attach deviceId to auth requests.
+  // To re-enable: restore getNativeDeviceIdForAuth() using @capacitor/core + @capacitor/device
+  // and spread ...(deviceId ? { deviceId } : {}) into login/register/verify payloads.
+
   /**
    * Login with email and password
-   * Automatically includes device ID from Capacitor Device API (required)
    */
   async login(email: string, password: string): Promise<Observable<LoginResponse>> {
-    // Get device ID before making login request (required)
-    let deviceId: string;
-    try {
-      const deviceInfo = await Device.getId();
-      deviceId = deviceInfo.identifier;
-      if (!deviceId) {
-        throw new Error('Device ID is not available');
-      }
-    } catch (error) {
-      console.error('Error getting device ID:', error);
-      // Device ID is required - throw error
-      return throwError(() => ({
-        message: 'Unable to get device ID. Please ensure the app has proper permissions and try again.',
-        status: 0
-      }));
-    }
-
     const loginData: LoginRequest = {
-      email,
-      password,
-      deviceId
+      email: (email ?? '').trim(),
+      password: (password ?? '').trim()
     };
 
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginData).pipe(
@@ -119,30 +104,12 @@ export class AuthService {
 
   /**
    * Register user with email and password
-   * Automatically includes device ID from Capacitor Device API (required)
    */
   async register(registerData: RegisterRequest): Promise<Observable<LoginResponse>> {
-    // Get device ID before making register request (required)
-    let deviceId: string;
-    try {
-      const deviceInfo = await Device.getId();
-      deviceId = deviceInfo.identifier;
-      if (!deviceId) {
-        throw new Error('Device ID is not available');
-      }
-    } catch (error) {
-      console.error('Error getting device ID:', error);
-      // Device ID is required - throw error
-      return throwError(() => ({
-        message: 'Unable to get device ID. Please ensure the app has proper permissions and try again.',
-        status: 0
-      }));
-    }
-    
-    // Add deviceId to register data
-    registerData.deviceId = deviceId;
+    const payload: RegisterRequest = { ...registerData };
+    delete payload.deviceId;
 
-    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, registerData).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, payload).pipe(
       tap(response => {
         // Check if user is blocked or device mismatch
         if (response.isBlocked || response.isDeviceMismatch) {
@@ -222,15 +189,12 @@ export class AuthService {
   }
 
   /**
-   * Check block status with backend
-   * If user is blocked, logs them out and redirects to blocked page
-   * @param skipNavigation - If true, skip navigation (useful when already on blocked page)
-   * @returns true if user is blocked, false otherwise
+   * Check block / registration status with backend.
+   * Returns true if user should not access the app.
    */
   async checkBlockStatus(skipNavigation: boolean = false): Promise<boolean> {
     const token = this.getToken();
     
-    // Only check if user has a token (is authenticated)
     if (!token) {
       return false;
     }
@@ -240,49 +204,102 @@ export class AuthService {
         this.http.get<{ success: boolean; data: User }>(`${environment.API_URL}/api/users/profile`).pipe(
           map(response => response.data),
           catchError(error => {
-            // If error is 401 or 403, user is likely blocked or unauthorized
             if (error.status === 401 || error.status === 403) {
-              return throwError(() => ({ ...error, isBlocked: true }));
+              return throwError(() => this.normalizeAccountStatusError(error));
             }
-            // For other errors (network, etc.), don't block the app
             return throwError(() => error);
           })
         )
       );
 
-      // Update user data with fresh data from backend
       this.setUser(user);
 
-      // Check if user is blocked
       if (user.isBlocked) {
-        // User is blocked - logout
         this.clearStorage();
-        // Only navigate if not already on blocked page
         if (!skipNavigation) {
           this.router.navigate(['/blocked']);
+        }
+        return true;
+      }
+
+      if (user.registrationStatus === 'pending') {
+        this.clearStorage();
+        if (!skipNavigation) {
+          this.router.navigate(['/pending-approval']);
+        }
+        return true;
+      }
+
+      if (user.registrationStatus === 'rejected') {
+        this.clearStorage();
+        if (!skipNavigation) {
+          this.router.navigate(['/registration-rejected']);
         }
         return true;
       }
 
       return false;
     } catch (error: any) {
-      // If error indicates blocked status, handle it
-      if (error?.isBlocked || error?.status === 403) {
+      if (error?.isBlocked) {
         this.clearStorage();
-        // Only navigate if not already on blocked page
         if (!skipNavigation) {
           this.router.navigate(['/blocked']);
         }
         return true;
       }
+      if (error?.isPendingApproval) {
+        this.clearStorage();
+        if (!skipNavigation) {
+          this.router.navigate(['/pending-approval']);
+        }
+        return true;
+      }
+      if (error?.isRejected) {
+        this.clearStorage();
+        if (!skipNavigation) {
+          this.router.navigate(['/registration-rejected']);
+        }
+        return true;
+      }
       
-      // For other errors (network issues, etc.), don't block the app
-      // Just log the error and continue
       console.error('Error checking block status:', error);
       return false;
     }
   }
 
+  isPendingApproval(): boolean {
+    return this.getCurrentUser()?.registrationStatus === 'pending';
+  }
+
+  isRejected(): boolean {
+    return this.getCurrentUser()?.registrationStatus === 'rejected';
+  }
+
+  isApproved(): boolean {
+    const status = this.getCurrentUser()?.registrationStatus;
+    return !status || status === 'approved';
+  }
+
+  private normalizeAccountStatusError(error: any): any {
+    if (error.error?.isPendingApproval) {
+      return {
+        ...error,
+        isPendingApproval: true,
+        message: error.error?.message
+      };
+    }
+    if (error.error?.isRejected) {
+      return {
+        ...error,
+        isRejected: true,
+        message: error.error?.message
+      };
+    }
+    if (error.error?.isBlocked || error.status === 403) {
+      return { ...error, isBlocked: true };
+    }
+    return error;
+  }
   /**
    * Get stored authentication token
    */
@@ -452,27 +469,11 @@ export class AuthService {
 
   /**
    * Verify WhatsApp OTP and log in
-   * Uses device ID from Capacitor Device API
    */
-  async verifyWhatsAppOtp(whatsapp: string, otp: string): Promise<Observable<LoginResponse>> {
-    let deviceId: string;
-    try {
-      const deviceInfo = await Device.getId();
-      deviceId = deviceInfo.identifier;
-      if (!deviceId) {
-        throw new Error('Device ID is not available');
-      }
-    } catch (error) {
-      return throwError(() => ({
-        message: 'Unable to get device ID. Please ensure the app has proper permissions and try again.',
-        status: 0
-      }));
-    }
-
+  verifyWhatsAppOtp(whatsapp: string, otp: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/whatsapp/verify-otp`, {
       whatsapp,
-      otp,
-      deviceId
+      otp
     }).pipe(
       tap(response => {
         if (response.isBlocked || response.isDeviceMismatch) {
@@ -514,9 +515,26 @@ export class AuthService {
    * Handle HTTP errors and return user-friendly messages
    */
   private handleError(error: any): any {
-    // Handle 403 errors first (device mismatch or blocked) - must check before early return
     if (error.status === 403) {
       const isDeviceMismatch = error.error?.isDeviceMismatch === true;
+      if (error.error?.isPendingApproval) {
+        return {
+          ...error,
+          message:
+            error.error?.message ||
+            'Your account is not approved yet. Please wait for admin approval.',
+          isPendingApproval: true
+        };
+      }
+      if (error.error?.isRejected) {
+        return {
+          ...error,
+          message:
+            error.error?.message ||
+            'Your registration was not approved. Check your email for details.',
+          isRejected: true
+        };
+      }
       const message = error.error?.message || 
         (isDeviceMismatch 
           ? 'Login failed. This account is registered to another device. Contact admin to reset device.'

@@ -71,76 +71,25 @@ export class BlockedPage implements OnInit {
       ? 'This account is registered to another device. Please contact admin to reset your device.'
       : 'Your account has been blocked by the admin. Contact admin for assistance.';
     
-    // If device mismatch, allow unauthenticated access
-    if (this.isDeviceMismatch && !this.authService.isAuthenticated()) {
-      // User came from device mismatch - allow them to stay on blocked page
-      return;
-    }
-    
-    // For authenticated users, verify block status
+    // Blocked users (admin block or device mismatch) arrive here AFTER their
+    // session has been intentionally cleared, so they are NOT authenticated.
+    // Do not bounce unauthenticated visitors back to /login.
+
+    // Authenticated visitors: re-verify with backend and send home if fine.
     if (this.authService.isAuthenticated()) {
       const isBlocked = await this.authService.checkBlockStatus(true);
       if (!isBlocked) {
-        // User is not blocked, redirect to home
         this.router.navigate(['/folder/home']);
         return;
       }
-      // If isBlocked is true, user is confirmed blocked (checkBlockStatus already logged out)
-    } else {
-      // Not authenticated and not device mismatch - redirect to login
-      this.router.navigate(['/login']);
-      return;
+      // Confirmed blocked (checkBlockStatus cleared the session) -> stay here.
     }
+    // Unauthenticated visitors remain on the blocked screen.
   }
 
   logout() {
     // Logout and redirect to login page
     this.authService.logout();
-  }
-
-  async payPenaltyAndAccess() {
-    const alert = await this.alertController.create({
-      header: 'Pay Penalty Fee',
-      message: `You need to pay ₹${this.penaltyAmount} as penalty fee to unblock your account. Do you want to proceed with the payment?`,
-      cssClass: 'custom-alert',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          cssClass: 'alert-button-cancel'
-        },
-        {
-          text: 'Pay ₹' + this.penaltyAmount,
-          cssClass: 'alert-button-confirm',
-          handler: async () => {
-            // TODO: Implement payment logic
-            await this.showPaymentSuccess();
-          }
-        }
-      ]
-    });
-
-    await alert.present();
-  }
-
-  async showPaymentSuccess() {
-    const alert = await this.alertController.create({
-      header: 'Payment Successful',
-      message: 'Your account has been unblocked. You can now access all features.',
-      cssClass: 'custom-alert success-alert',
-      buttons: [
-        {
-          text: 'OK',
-          cssClass: 'alert-button-confirm',
-          handler: () => {
-            // TODO: Unblock account and redirect to home
-            this.router.navigate(['/folder/home']);
-          }
-        }
-      ]
-    });
-
-    await alert.present();
   }
 
   async payPenalty() {

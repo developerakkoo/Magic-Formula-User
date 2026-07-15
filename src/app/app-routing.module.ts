@@ -25,7 +25,8 @@ const routes: Routes = [
   },
   {
     path: 'forgot-password',
-    loadChildren: () => import('./forgot-password/forgot-password.module').then( m => m.ForgotPasswordPageModule)
+    loadChildren: () => import('./forgot-password/forgot-password.module').then( m => m.ForgotPasswordPageModule),
+    canActivate: [LoginGuard]
   },
   {
     path: 'profile',
@@ -65,6 +66,14 @@ const routes: Routes = [
   {
     path: 'blocked',
     loadChildren: () => import('./blocked/blocked.module').then( m => m.BlockedPageModule)
+  },
+  {
+    path: 'pending-approval',
+    loadChildren: () => import('./pending-approval/pending-approval.module').then( m => m.PendingApprovalPageModule)
+  },
+  {
+    path: 'registration-rejected',
+    loadChildren: () => import('./registration-rejected/registration-rejected.module').then( m => m.RegistrationRejectedPageModule)
   }
 ];
 

@@ -308,12 +308,19 @@ export class RegisterPage implements OnInit, OnDestroy {
       );
 
       this.closeOtpModal();
-      await this.showToast('Registration successful!', 'success');
-      this.router.navigate(['/folder/Magic Formula']);
+      this.authService.clearSession();
+      await this.showToast('Registration submitted. Awaiting admin approval.', 'success');
+      this.router.navigate(['/pending-approval']);
     } catch (error: any) {
       if (error?.isBlocked || error?.isDeviceMismatch) {
         this.closeOtpModal();
         this.router.navigate(['/blocked']);
+        return;
+      }
+      if (error?.isPendingApproval) {
+        this.closeOtpModal();
+        this.authService.clearSession();
+        this.router.navigate(['/pending-approval']);
         return;
       }
       this.authService.clearSession();

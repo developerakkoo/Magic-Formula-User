@@ -15,8 +15,7 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Skip adding token for login and register endpoints
-    if (req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register')) {
+    if (this.isPublicRoute(req)) {
       return next.handle(req);
     }
 
@@ -45,14 +44,25 @@ export class AuthInterceptor implements HttpInterceptor {
         // Handle 403 Forbidden (blocked user or device mismatch)
         if (error.status === 403) {
           const isDeviceMismatch = error.error?.isDeviceMismatch === true;
-          const user = this.authService.getCurrentUser();
-          
-          if (isDeviceMismatch || user?.isBlocked || error.error?.isBlocked) {
-            // Logout user first to clear token and storage
-            // This prevents further API calls with invalid token
-            this.authService.logout();
-            
-            // Navigate to blocked page with state to indicate device mismatch
+
+          if (error.error?.isPendingApproval) {
+            this.authService.clearSession();
+            this.router.navigate(['/pending-approval']);
+            this.showToast(
+              error.error?.message ||
+                'Your account is not approved yet. Please wait for admin approval.',
+              'warning'
+            );
+          } else if (error.error?.isRejected) {
+            this.authService.clearSession();
+            this.router.navigate(['/registration-rejected']);
+            this.showToast(
+              error.error?.message ||
+                'Your registration was not approved.',
+              'warning'
+            );
+          } else if (isDeviceMismatch || error.error?.isBlocked) {
+            this.authService.clearSession();
             this.router.navigate(['/blocked'], {
               state: { isDeviceMismatch }
             });
@@ -72,6 +82,17 @@ export class AuthInterceptor implements HttpInterceptor {
 
         return throwError(() => error);
       })
+    );
+  }
+
+  private isPublicRoute(req: HttpRequest<any>): boolean {
+    const url = req.url;
+
+    return (
+      url.includes('/api/auth/login') ||
+      url.includes('/api/auth/register') ||
+      url.includes('/api/users/forgot-password/request-otp') ||
+      url.includes('/api/users/forgot-password/reset')
     );
   }
 

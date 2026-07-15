@@ -39,7 +39,7 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    // User is authenticated and not blocked
+    // User is authenticated and account is in good standing
     return true;
   }
 }
@@ -57,13 +57,15 @@ export class LoginGuard implements CanActivate {
   ) {}
 
   canActivate(): boolean {
-    // If user is already authenticated and not blocked, redirect to home
-    if (this.authService.isAuthenticated() && !this.authService.isBlocked()) {
+    if (
+      this.authService.isAuthenticated() &&
+      !this.authService.isBlocked() &&
+      this.authService.isApproved()
+    ) {
       this.router.navigate(['/folder/Magic Formula']);
       return false;
     }
 
-    // Allow access to login/register pages
     return true;
   }
 }

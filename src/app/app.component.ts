@@ -7,6 +7,7 @@ import { PrivacyScreen } from '@capacitor/privacy-screen';
 import { AuthService } from './services/auth.service';
 import { NotificationService } from './services/notification.service';
 import { SubscriptionService } from './services/subscription.service';
+import { BrowserHardeningService } from './services/browser-hardening.service';
 import { Subject, interval, from, of } from 'rxjs';
 import { takeUntil, switchMap, catchError, filter } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
@@ -42,7 +43,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private alertController: AlertController,
     private notificationService: NotificationService,
-    private subscriptionService: SubscriptionService
+    private subscriptionService: SubscriptionService,
+    private browserHardeningService: BrowserHardeningService
   ) {
     this.initializeApp();
   }
@@ -112,6 +114,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.browserHardeningService.init(this.destroy$);
+
     // Enable privacy screen on native platforms (no screenshots, no screen recordings)
     if (Capacitor.isNativePlatform()) {
       PrivacyScreen.enable({

@@ -2,12 +2,14 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+// Hardening (context menu / DevTools shortcuts) runs only when production: true.
+// Use `ng serve --configuration=production` to test it locally.
 export const environment = {
   production: false,
   // API_URL: 'http://localhost:5000',
   API_URL: 'https://api.moneycrafttrader.com',
-  /** Test mode for local/dev; production builds use environment.prod.ts (live key id). */
-  RAZORPAY_KEY_ID: 'rzp_test_Rp3ejYlVfY449V'
+  /** Live Checkout key id (must match RAZORPAY_KEY_ID on the API server). */
+  RAZORPAY_KEY_ID: 'rzp_live_SfJpxnRZwkAFD2'
 };
 
 /*

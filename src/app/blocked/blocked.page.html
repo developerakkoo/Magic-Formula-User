@@ -70,10 +70,13 @@
           expand="block"
           fill="outline"
           class="pay-penalty-button"
-          (click)="payPenaltyAndAccess()"
+          (click)="payPenalty()"
+          [disabled]="isPayingPenalty"
         >
-          <ion-icon name="card-outline" slot="start"></ion-icon>
-          Pay Penalty and Access Account
+          <ion-spinner *ngIf="isPayingPenalty" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!isPayingPenalty" name="card-outline" slot="start"></ion-icon>
+          <span *ngIf="!isPayingPenalty">Pay Penalty and Access Account</span>
+          <span *ngIf="isPayingPenalty">Processing...</span>
         </ion-button>
       </div>
 

@@ -1,0 +1,17 @@
+<ion-content [fullscreen]="true" class="status-content">
+  <div class="status-container">
+    <div class="status-icon-wrapper pending">
+      <ion-icon name="time-outline"></ion-icon>
+    </div>
+    <div class="status-card">
+      <h1>Awaiting Approval</h1>
+      <p>
+        Registration submitted. Your account is awaiting admin approval.
+        You will be able to sign in once an administrator approves your account.
+      </p>
+      <ion-button expand="block" fill="solid" (click)="goToLogin()">
+        Back to Login
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
